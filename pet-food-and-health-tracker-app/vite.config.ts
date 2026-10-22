@@ -12,7 +12,7 @@ export default defineConfig({
     vueJsx(),
     vueDevTools(),
   ],
-  base: '/Personal-Projects/',
+  base: '/personal-projects/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
