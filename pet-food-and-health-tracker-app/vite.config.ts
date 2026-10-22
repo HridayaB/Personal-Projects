@@ -12,7 +12,7 @@ export default defineConfig({
     vueJsx(),
     vueDevTools(),
   ],
-  base: '/pet-food-and-health-tracker-app/',
+  base: '/Personal-Projects/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
