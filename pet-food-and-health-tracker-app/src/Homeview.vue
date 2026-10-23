@@ -11,7 +11,7 @@ defineOptions({
     If you are new here, then let's <router-link to="/get-started">get started</router-link>!
   </p>
   <p>
-    <a href="https://hridayab.github.io/Personal-Projects/daily-food-tracker/" target="_blank" rel="noopener">Daily Food Trackerr</a>
+    <a href="https://hridayab.github.io/Personal-Projects/daily-food-tracker/" target="_blank" rel="noopener">Daily Food Tracker</a>
   </p>
   <p>
     <a href="https://hridayab.github.io/Personal-Projects/daily-treats-tracker/" target="_blank" rel="noopener">Daily Treats Tracker</a>
