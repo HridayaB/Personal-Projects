@@ -17,8 +17,16 @@ describe('HomeView', () => {
     const router = makeRouter()
     const wrapper = mount(HomeView, { global: { plugins: [router] } })
     await router.isReady()
-    const link = wrapper.find('a[href="#/get-started"]')
+    expect(wrapper.find('h1').text()).toBe('Pet Food and Health Tracker')
+  })
+
+  it('links to the get-started page', async () => {
+    const router = makeRouter()
+    const wrapper = mount(HomeView, { global: { plugins: [router] } })
+    await router.isReady()
+    const link = wrapper.findComponent({ name: 'RouterLink' })
     expect(link.exists()).toBe(true)
+    expect(link.props('to')).toBe('/get-started')
     expect(link.text()).toContain('get started')
   })
 })
