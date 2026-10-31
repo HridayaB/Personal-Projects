@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import GetStarted from '../Get-started.vue'
@@ -21,6 +21,10 @@ const mountView = async () => {
 }
 
 describe('GetStarted', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('does not show the modal initially', async () => {
     const { wrapper } = await mountView()
     expect(wrapper.find('.modal-overlay').exists()).toBe(false)
@@ -55,5 +59,32 @@ describe('GetStarted', () => {
     await wrapper.find('button').trigger('click')
     await wrapper.findAll('button').find(b => b.text() === 'Cancel')!.trigger('click')
     expect(wrapper.find('.modal-overlay').exists()).toBe(false)
+  })
+
+  it('saves the selected pet to localStorage when the Submit button is clicked', async () => {
+    const { wrapper } = await mountView()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')?.trigger('click')
+    expect(localStorage.getItem('userPet')).toBe('Dog')
+  })
+
+  it('when no pet is selected, it does not save anything or navigate anywhere', async () => {
+    const { wrapper, router } = await mountView()
+    const push = vi.spyOn(router, 'push')
+    await wrapper.find('button').trigger('click')
+    const submitButton = wrapper.findAll('button').find(b => b.text() === 'Submit')!
+    await submitButton.trigger('click')
+    expect(localStorage.getItem('userPet')).toBeNull()
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('navigates to the food tracker page with the selected pet from localStorage', async () => {
+    const { wrapper, router } = await mountView()
+    const push = vi.spyOn(router, 'push')
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    expect(push).toHaveBeenCalledWith('/daily-food-tracker?pet=Dog')
   })
 })
