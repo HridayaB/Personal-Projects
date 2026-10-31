@@ -9,6 +9,7 @@ const selectedPet = ref('')
 const pets = ['Dog', 'Cat', 'Bird', 'Fish', 'Horse', 'Turtle', 'Rabbit', 'Hamster', 'Guinea Pig', 'Snake', 'Other']
 const submit = () => {
   if (!selectedPet.value) return
+  localStorage.setItem('userPet', selectedPet.value)
   isOpen.value = false
   router.push(`/daily-food-tracker?pet=${encodeURIComponent(selectedPet.value)}`)
 }
