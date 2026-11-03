@@ -45,13 +45,13 @@ describe('GetStarted', () => {
     expect(submitButton?.attributes('disabled')).toBeUndefined()
   })
 
-  it('navigates to the food tracker page with the selected pet', async () => {
+  it('does not navigate to the food tracker page with the selected pet', async () => {
     const { wrapper, router } = await mountView()
     const push = vi.spyOn(router, 'push')
     await wrapper.find('button').trigger('click')
     await wrapper.find('select').setValue('Cat')
-    await wrapper.findAll('button').find(b => b.text() === 'Submit')?.trigger('click')
-    expect(push).toHaveBeenCalledWith('/daily-food-tracker?pet=Cat')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    expect(push).not.toHaveBeenCalledWith('/daily-food-tracker?pet=Cat')
   })
 
   it('closes the modal when the cancel button is clicked', async () => {
@@ -59,14 +59,6 @@ describe('GetStarted', () => {
     await wrapper.find('button').trigger('click')
     await wrapper.findAll('button').find(b => b.text() === 'Cancel')!.trigger('click')
     expect(wrapper.find('.modal-overlay').exists()).toBe(false)
-  })
-
-  it('saves the selected pet to localStorage when the Submit button is clicked', async () => {
-    const { wrapper } = await mountView()
-    await wrapper.find('button').trigger('click')
-    await wrapper.find('select').setValue('Dog')
-    await wrapper.findAll('button').find(b => b.text() === 'Submit')?.trigger('click')
-    expect(localStorage.getItem('userPet')).toBe('Dog')
   })
 
   it('when no pet is selected, it does not save anything or navigate anywhere', async () => {
@@ -79,12 +71,55 @@ describe('GetStarted', () => {
     expect(push).not.toHaveBeenCalled()
   })
 
-  it('navigates to the food tracker page with the selected pet from localStorage', async () => {
+  it('asks user what type of breed their pet is', async () => {
+    const { wrapper } = await mountView()
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.find('input[type="text"]').exists()).toBe(false)
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.findAll('input[type="text"]')
+    expect(wrapper.find('input[type="text"]').exists()).toBe(true)
+  })
+
+  it('uses the selected pet in the breed label', async () => {
+    const { wrapper } = await mountView()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('select').setValue('Cat')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    expect(wrapper.text()).toContain("Enter your cat's breed")
+  })
+
+  it('saves the selected pet and breed to localStorage when the submit button is clicked', async () => {
     const { wrapper, router } = await mountView()
     const push = vi.spyOn(router, 'push')
     await wrapper.find('button').trigger('click')
     await wrapper.find('select').setValue('Dog')
     await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Siberian Husky')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    expect(localStorage.getItem('userPet')).toBe('Dog')
+    expect(localStorage.getItem('userPetBreed')).toBe('Siberian Husky')
     expect(push).toHaveBeenCalledWith('/daily-food-tracker?pet=Dog')
+  })
+
+  it('does not let user click submit when breed is not entered', async () => {
+    const { wrapper } = await mountView()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    const breedInputSubmitButton = wrapper.findAll('button').find(b => b.text() === 'Submit')!
+    expect(breedInputSubmitButton.attributes('disabled')).toBeDefined()
+    await wrapper.find('input[type="text"]').setValue('Siberian Husky')
+    expect(breedInputSubmitButton.attributes('disabled')).toBeUndefined()
+  })
+
+  it('does not save the breed to localStorage when I\'m not sure button is clicked', async () => {
+    const { wrapper } = await mountView()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.findAll('button').find(b => b.text() === 'I\'m not sure')!.trigger('click')
+    expect(localStorage.getItem('userPet')).toBe('Dog')
+    expect(localStorage.getItem('userPetBreed')).toBeNull()
   })
 })
