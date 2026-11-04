@@ -30,13 +30,9 @@ const finish = (treatFrequency: string | null) => {
   localStorage.setItem('userPet', selectedPet.value)
   if (selectedPetBreed.value) {
     localStorage.setItem('userPetBreed', selectedPetBreed.value)
-    localStorage.setItem('userPetFoodFrequency', selectedPetFoodFrequency.value)
-    localStorage.setItem('userPetTreatFrequency', safeTreatFrequency)
   }
-  else {
-    localStorage.setItem('userPetFoodFrequency', selectedPetFoodFrequency.value)
-    localStorage.setItem('userPetTreatFrequency', safeTreatFrequency)
-  }
+  localStorage.setItem('userPetFoodFrequency', selectedPetFoodFrequency.value)
+  localStorage.setItem('userPetTreatFrequency', safeTreatFrequency)
   isOpen.value = false
   router.push(`/daily-food-tracker?pet=${encodeURIComponent(selectedPet.value)}`)
 }
@@ -48,7 +44,7 @@ const submitPetBreed = () => {
   if (!selectedPetBreed.value) return
   step.value = 'food'
 }
-const notSure = () => finish(null)
+const notSure = () => step.value = 'food'
 const submitPetFoodFrequency = () => {
   if (!selectedPetFoodFrequency.value) return
   step.value = 'treat'
@@ -86,13 +82,14 @@ const submitPetTreatFrequency = () => {
       </template>
       <template v-else-if="step === 'food'">
         <h3>{{ foodFrequencyLabel }}</h3>
-        <input type="text" :placeholder="foodFrequencyLabel" v-model="selectedPetFoodFrequency">
+        <input type="number" min="0" :placeholder="foodFrequencyLabel" v-model="selectedPetFoodFrequency">
         <p>If you are unsure, then you should either contact your veterinarian or refer to the breed/age/size guidelines for your pet. Here are some sites with some general recommendations.</p>
         <ul>
           <li><a href="https://www.petfoodinstitute.org/feeding-and-treating-tips/" target="_blank" rel="noopener noreferrer">Pet Food Institute</a></li>
           <li><a href="https://wsava.org/global-guidelines/global-nutrition-guidelines/" target="_blank" rel="noopener noreferrer">WSAVA Global Nutrition Guidelines</a></li>
           <li><a href="https://pawsomepet.co/news/diet/how-often-should-you-feed-your-pet" target="_blank" rel="noopener noreferrer">Pawsome Pet</a></li>
         </ul>
+        <p>These are general recommendations only, not medical advice. Always consult your veterinarian for personalized guidance.</p>
         <div class="actions">
           <button :disabled="!selectedPetFoodFrequency" @click="submitPetFoodFrequency">Submit</button>
           <button @click="isOpen = false">Cancel</button>
@@ -100,13 +97,14 @@ const submitPetTreatFrequency = () => {
       </template>
       <template v-else-if="step === 'treat'">
         <h3>{{ treatFrequencyLabel }}</h3>
-        <input type="text" :placeholder="treatFrequencyLabel" v-model="selectedPetTreatFrequency">
+        <input type="number" min="0" :placeholder="treatFrequencyLabel" v-model="selectedPetTreatFrequency">
         <p>If you are unsure, then you should either contact your veterinarian or refer to the breed/age/size guidelines for your pet. Here are some sites with some general recommendations.</p>
         <ul>
           <li><a href="https://www.petfoodinstitute.org/feeding-and-treating-tips/" target="_blank" rel="noopener noreferrer">Pet Food Institute</a></li>
           <li><a href="https://wsava.org/global-guidelines/global-nutrition-guidelines/" target="_blank" rel="noopener noreferrer">WSAVA Global Nutrition Guidelines</a></li>
-          <li><a href="https://www.gourbantails.com/blogs/urbantrail-blog/how-often-pet-treats?srsltid=AYCX9vK3P4qzDxs2kyV69zKn1oPp-VbgGzGJp_GzKy4vDQEs0m1OOK_H" target="_blank" rel="noopener noreferrer">Gourbantails</a></li>
+          <li><a href="https://www.aaha.org/resources/5-ways-to-know-how-much-to-feed-your-pet/" target="_blank" rel="noopener noreferrer">AAHA</a></li>
         </ul>
+        <p>These are general recommendations only, not medical advice. Always consult your veterinarian for personalized guidance.</p>
         <div class="actions">
           <button :disabled="!selectedPetTreatFrequency" @click="submitPetTreatFrequency">Submit</button>
           <button @click="isOpen = false">Cancel</button>
