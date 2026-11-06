@@ -29,4 +29,14 @@ describe('HomeView', () => {
     expect(link.props('to')).toBe('/get-started')
     expect(link.text()).toContain('get started')
   })
+
+  it('links to the daily food tracker page', async () => {
+    const router = makeRouter()
+    const wrapper = mount(HomeView, { global: { plugins: [router] }})
+    await router.isReady()
+    const link = wrapper.findAllComponents({ name: 'RouterLink' }).find(l => l.text().includes('daily food tracker'))
+    expect(link?.exists()).toBe(true)
+    expect(link?.props('to')).toBe('/daily-food-tracker')
+    expect(link?.text()).toContain('daily food tracker')
+  })
 })

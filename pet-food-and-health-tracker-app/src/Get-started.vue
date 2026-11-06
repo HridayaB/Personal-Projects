@@ -4,8 +4,10 @@ import {useRouter} from 'vue-router'
 
 const router = useRouter()
 const isOpen = ref(false)
-const step = ref<'pet' | 'breed' | 'food' | 'treat'>('pet')
+const step = ref<'pet' | 'name' | 'weight' |'breed' | 'food' | 'treat'>('pet')
 const selectedPet = ref('')
+const selectedPetName = ref('')
+const selectedPetWeight = ref('')
 const selectedPetBreed = ref('')
 const selectedPetFoodFrequency = ref('')
 const selectedPetTreatFrequency = ref('')
@@ -13,12 +15,16 @@ const selectedPetTreatFrequency = ref('')
 const pets = ['Dog', 'Cat', 'Bird', 'Fish', 'Horse', 'Turtle', 'Rabbit', 'Hamster', 'Guinea Pig', 'Snake', 'Other']
 
 const breedLabel = computed(() => selectedPet.value ? `Enter your ${selectedPet.value.toLowerCase()}'s breed` : "Enter your pet's breed")
+const petNameLabel = computed(() => selectedPet.value ? `What is your ${selectedPet.value.toLowerCase()}'s name?` : "What is your pet's name?")
+const petWeightLabel = computed(() => selectedPet.value ? `What is your ${selectedPet.value.toLowerCase()}'s weight?` : "What is your pet's weight?")
 const foodFrequencyLabel = computed(() => selectedPet.value ? `How many times are you planning to feed your ${selectedPet.value.toLowerCase()} in a single day?` : "How many times are you planning to feed your pet in a single day?")
 const treatFrequencyLabel = computed(() => selectedPet.value ? `How many treats are you planning to give your ${selectedPet.value.toLowerCase()} in a single day?` : "How many treats are you planning to give your pet in a single day?")
 
 const openModal = () => {
   step.value = 'pet'
   selectedPet.value = ''
+  selectedPetName.value = ''
+  selectedPetWeight.value = ''
   selectedPetBreed.value = ''
   selectedPetFoodFrequency.value = ''
   selectedPetTreatFrequency.value = ''
@@ -28,6 +34,8 @@ const openModal = () => {
 const finish = (treatFrequency: string | null) => {
   const safeTreatFrequency = treatFrequency ?? ''
   localStorage.setItem('userPet', selectedPet.value)
+  localStorage.setItem('userPetName', selectedPetName.value)
+  localStorage.setItem('userPetWeight', selectedPetWeight.value)
   if (selectedPetBreed.value) {
     localStorage.setItem('userPetBreed', selectedPetBreed.value)
   }
@@ -38,6 +46,14 @@ const finish = (treatFrequency: string | null) => {
 }
 const submitSelectPet = () => {
   if (!selectedPet.value) return
+  step.value = 'name'
+}
+const submitPetName = () => {
+  if (!selectedPetName.value) return
+  step.value = 'weight'
+}
+const submitPetWeight = () => {
+  if (!selectedPetWeight.value) return
   step.value = 'breed'
 }
 const submitPetBreed = () => {
@@ -71,9 +87,25 @@ const submitPetTreatFrequency = () => {
           <button @click="isOpen = false">Cancel</button>
         </div>
       </template>
+      <template v-else-if="step === 'name'">
+        <h3>{{ petNameLabel }}</h3>
+        <input type="text" placeholder="Enter your pet's name" v-model="selectedPetName">
+        <div class="actions">
+          <button :disabled="!selectedPetName" @click="submitPetName">Submit</button>
+          <button @click="isOpen = false">Cancel</button>
+        </div>
+      </template>
+      <template v-else-if="step === 'weight'">
+        <h3>{{ petWeightLabel }}</h3>
+        <input type="number" placeholder="Enter in pounds(lbs)" v-model="selectedPetWeight">
+        <div class="actions">
+          <button :disabled="!selectedPetWeight" @click="submitPetWeight">Submit</button>
+          <button @click="isOpen = false">Cancel</button>
+        </div>
+      </template>
       <template v-else-if="step === 'breed'">
         <h3>{{ breedLabel }}</h3>
-        <input type="text" :placeholder="breedLabel" v-model="selectedPetBreed">
+        <input type="text" placeholder="Enter your pet's breed" v-model="selectedPetBreed">
         <button @click="notSure">I'm not sure</button>
         <div class="actions">
           <button :disabled="!selectedPetBreed" @click="submitPetBreed">Submit</button>
@@ -82,7 +114,7 @@ const submitPetTreatFrequency = () => {
       </template>
       <template v-else-if="step === 'food'">
         <h3>{{ foodFrequencyLabel }}</h3>
-        <input type="number" min="0" :placeholder="foodFrequencyLabel" v-model="selectedPetFoodFrequency">
+        <input type="number" min="0" v-model="selectedPetFoodFrequency">
         <p>If you are unsure, then you should either contact your veterinarian or refer to the breed/age/size guidelines for your pet. Here are some sites with some general recommendations.</p>
         <ul>
           <li><a href="https://www.petfoodinstitute.org/feeding-and-treating-tips/" target="_blank" rel="noopener noreferrer">Pet Food Institute</a></li>
@@ -97,7 +129,7 @@ const submitPetTreatFrequency = () => {
       </template>
       <template v-else-if="step === 'treat'">
         <h3>{{ treatFrequencyLabel }}</h3>
-        <input type="number" min="0" :placeholder="treatFrequencyLabel" v-model="selectedPetTreatFrequency">
+        <input type="number" min="0" v-model="selectedPetTreatFrequency">
         <p>If you are unsure, then you should either contact your veterinarian or refer to the breed/age/size guidelines for your pet. Here are some sites with some general recommendations.</p>
         <ul>
           <li><a href="https://www.petfoodinstitute.org/feeding-and-treating-tips/" target="_blank" rel="noopener noreferrer">Pet Food Institute</a></li>
