@@ -1,51 +1,58 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getPets, type Pet } from './pets'
 
-const pet = ref('')
-const petBreed = ref('')
-const petFoodFrequency = ref('')
-const todayFeedCount = ref(0)
-const hasSetupPetInfo = ref(true)
+interface TrackedPet extends Pet {
+  feedCount: number
+}
 
+const trackedPets = ref<TrackedPet[]>([])
 const todayDate = new Date().toLocaleDateString('en-CA')
-const logKey = computed(() => `foodLog:${todayDate}`)
 
-const limit = computed(() => Number(petFoodFrequency.value) || 0)
-const remaining = computed(() => Math.max(limit.value - todayFeedCount.value, 0))
-const progressLabel = computed(() => (limit.value ? `${todayFeedCount.value} of ${limit.value} feedings given today.` : 'No feeding limit set.'))
+const logKeyFor = (petId: string) => `foodLog:${petId}:${todayDate}`
 
 onMounted(() => {
-  pet.value = localStorage.getItem('userPet') ?? ''
-  petBreed.value = localStorage.getItem('userPetBreed') ?? ''
-  petFoodFrequency.value = localStorage.getItem('userPetFoodFrequency') ?? ''
-  hasSetupPetInfo.value = Boolean(pet.value && petFoodFrequency.value)
-  const saved = localStorage.getItem(logKey.value)
-  todayFeedCount.value = saved ? Number(saved) : 0
+  trackedPets.value = getPets().map(pet => {
+    const saved = localStorage.getItem(logKeyFor(pet.id))
+    return { ...pet, feedCount: saved ? Number(saved) : 0 }
+  })
 })
 
-const logFeeding = () => {
-  if (!hasSetupPetInfo.value) return
-  if (limit.value && todayFeedCount.value >= limit.value) return
-  todayFeedCount.value += 1
-  localStorage.setItem(logKey.value, String(todayFeedCount.value))
+const limitOf = (p: TrackedPet) => Number(p.foodFrequency) || 0
+const remainingOf = (p: TrackedPet) => Math.max(limitOf(p) - p.feedCount, 0)
+const progressOf = (p: TrackedPet) => limitOf(p) ? `${p.feedCount} of ${limitOf(p)} feedings given today.` : 'No feeding limit set.'
+
+const logFeeding = (p: TrackedPet) => {
+  if (limitOf(p) && p.feedCount >= limitOf(p)) return
+  p.feedCount += 1
+  localStorage.setItem(logKeyFor(p.id), String(p.feedCount))
 }
-const resetLog = () => {
-  todayFeedCount.value = 0
-  localStorage.removeItem(logKey.value)
+
+const resetLog = (p: TrackedPet) => {
+  p.feedCount = 0
+  localStorage.removeItem(logKeyFor(p.id))
 }
 </script>
 
 <template>
   <h2>Daily Food Tracker</h2>
-  <div v-if="!hasSetupPetInfo" class="setup-prompt">
-    <p>It looks like you haven't set up your pet's information yet. <router-link to="/get-started">You can get started here.</router-link></p>
+  <div v-if="trackedPets.length === 0" class="setup-prompt">
+    <p>
+      It looks like you haven't set up your pet's information yet. <router-link to="/get-started">You can get started here.</router-link>
+    </p>
   </div>
+
   <div v-else>
-    <p>Tracking for <strong>{{ pet }}</strong> <span v-if="petBreed"> ({{ petBreed }})</span> - {{ todayDate }}</p>
-    <p>{{ progressLabel }}</p>
-    <p v-if="limit">Remaining feedings for the day: {{ remaining }}</p>
-    <button @click="logFeeding" :disabled="remaining === 0">Log feeding</button>
-    <button @click="resetLog">Reset feed count</button>
+    <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
+      <p>
+        Tracking for <strong>{{ pet.name }}</strong>
+        <span v-if="pet.breed"> ({{ pet.breed }})</span> — {{ todayDate }}
+      </p>
+      <p>{{ progressOf(pet) }}</p>
+      <p v-if="limitOf(pet)">Remaining feedings for the day: {{ remainingOf(pet) }}</p>
+      <button :disabled="remainingOf(pet) === 0" :data-test="`log-${pet.id}`" @click="logFeeding(pet)">Log feeding for {{ pet.name }}</button>
+      <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s feed count</button>
+    </div>
   </div>
 </template>
 

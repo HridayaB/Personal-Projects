@@ -7,8 +7,9 @@ const makeRouter = () =>
   createRouter({
     history: createMemoryHistory(),
     routes: [
-      {path: '/', component: HomeView },
+      { path: '/', component: HomeView },
       { path: '/get-started', component: { template: '<div>Get Started</div>' } },
+      { path: '/daily-food-tracker', component: { template: '<div>Daily Food Tracker</div>' } },
     ],
   })
 
@@ -32,11 +33,11 @@ describe('HomeView', () => {
 
   it('links to the daily food tracker page', async () => {
     const router = makeRouter()
-    const wrapper = mount(HomeView, { global: { plugins: [router] }})
+    const wrapper = mount(HomeView, { global: { plugins: [router] } })
     await router.isReady()
-    const link = wrapper.findAllComponents({ name: 'RouterLink' }).find(l => l.text().includes('daily food tracker'))
+    const link = wrapper.findAllComponents({ name: 'RouterLink' }).find(l => l.text().includes('Daily Food Tracker'))
     expect(link?.exists()).toBe(true)
     expect(link?.props('to')).toBe('/daily-food-tracker')
-    expect(link?.text()).toContain('daily food tracker')
+    expect(link?.text()).toContain('Daily Food Tracker')
   })
 })
