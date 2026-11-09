@@ -1,7 +1,7 @@
 <script setup lang="ts">
-defineOptions({
-  name: 'HomeView'
-})
+  defineOptions({
+    name: 'HomeView'
+  })
 </script>
 
 <template>
@@ -14,7 +14,7 @@ defineOptions({
     <router-link to="/daily-food-tracker">Daily Food Tracker</router-link>
   </p>
   <p>
-    <a href="https://hridayab.github.io/Personal-Projects/daily-treats-tracker/" target="_blank" rel="noopener">Daily Treats Tracker</a>
+    <router-link to="/daily-treat-tracker">Daily Treat Tracker</router-link>
   </p>
 </template>
 

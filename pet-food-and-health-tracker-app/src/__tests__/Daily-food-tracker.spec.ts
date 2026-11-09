@@ -21,8 +21,7 @@ const mountView = async () => {
 }
 
 const base = {
-  type: 'Dog', name: 'Buddy', weight: '50',
-  breed: 'Siberian Husky', foodFrequency: '2', treatFrequency: '5',
+  type: 'Dog', name: 'Buddy', weight: '50', breed: 'Siberian Husky', foodFrequency: '2', treatFrequency: '5',
 }
 
 const seedPet = (overrides: Partial<typeof base> = {}) =>
@@ -35,7 +34,7 @@ describe('DailyFoodTracker', () => {
 
   it('shows a setup prompt when there are no pets', async () => {
     const { wrapper } = await mountView()
-    expect(wrapper.text()).toContain("haven't set up your pet")
+    expect(wrapper.text()).toContain("It looks like you haven't set up your pet's information yet.")
     expect(wrapper.find('button').exists()).toBe(false)
   })
 
