@@ -12,6 +12,7 @@ const makeRouter = () =>
       { path: '/daily-food-tracker', component: { template: '<div>Daily Food Tracker</div>' } },
       { path: '/daily-treat-tracker', component: { template: '<div>Daily Treat Tracker</div>' } },
       { path: '/daily-exercise-tracker', component: { template: '<div>Daily Exercise Tracker</div>' } },
+      { path: '/daily-medicine-tracker', component: { template: '<div>Daily Medicine Tracker</div>' } },
     ],
   })
 
@@ -61,5 +62,15 @@ describe('HomeView', () => {
     expect(link?.exists()).toBe(true)
     expect(link?.props('to')).toBe('/daily-exercise-tracker')
     expect(link?.text()).toContain('Daily Exercise Tracker')
+  })
+
+  it('links to the daily medicine tracker page', async () => {
+    const router = makeRouter()
+    const wrapper = mount(HomeView, { global: { plugins: [router] } })
+    await router.isReady()
+    const link = wrapper.findAllComponents({ name: 'RouterLink' }).find(l => l.text().includes('Daily Medicine Tracker'))
+    expect(link?.exists()).toBe(true)
+    expect(link?.props('to')).toBe('/daily-medicine-tracker')
+    expect(link?.text()).toContain('Daily Medicine Tracker')
   })
 })

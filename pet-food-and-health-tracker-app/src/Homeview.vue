@@ -19,6 +19,9 @@
   <p>
     <router-link to="/daily-exercise-tracker">Daily Exercise Tracker</router-link>
   </p>
+  <p>
+    <router-link to="/daily-medicine-tracker">Daily Medicine Tracker</router-link>
+  </p>
 </template>
 
 <style scoped>
