@@ -157,11 +157,11 @@ describe('GetStarted', () => {
       exerciseFrequency: 2,
       exerciseDuration: 30,
       exerciseTypes: 2,
-      exerciseLabels: 'yes',
+      exerciseLabels: 'Walk,Run',
       medicineFrequency: 1,
       medicineIntake: 'yes',
       medicineTypes: 1,
-      medicineLabels: 'yes',
+      medicineLabels: 'Med1',
     })
     expect(localStorage.getItem('activePet')).toBe(pets[0].id)
     expect(push).toHaveBeenCalledWith('/daily-food-tracker')

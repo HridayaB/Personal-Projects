@@ -22,7 +22,7 @@
   const remainingOf = (p: TrackedPet) => Math.max(limitOf(p) - p.treatCount, 0)
   const progressOf = (p: TrackedPet) => limitOf(p) ? `${p.treatCount} of ${limitOf(p)} treats given today.` : 'No treat limit set.'
 
-  const logFeeding = (p: TrackedPet) => {
+  const logTreat = (p: TrackedPet) => {
     if (limitOf(p) && p.treatCount >= limitOf(p)) return
     p.treatCount += 1
     localStorage.setItem(logKeyFor(p.id), String(p.treatCount))
@@ -50,7 +50,7 @@
       </p>
       <p>{{ progressOf(pet) }}</p>
       <p v-if="limitOf(pet)">Remaining treats for the day: {{ remainingOf(pet)}}</p>
-      <button :disabled="remainingOf(pet) === 0" :data-test="`log-${pet.id}`" @click="logFeeding(pet)">Log treat</button>
+      <button :disabled="remainingOf(pet) === 0" :data-test="`log-${pet.id}`" @click="logTreat(pet)">Log treat</button>
       <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s treat count</button>
     </div>
   </div>

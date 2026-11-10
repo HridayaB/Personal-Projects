@@ -16,11 +16,13 @@
   const selectedPetExerciseFrequency = ref('')
   const selectedPetExerciseDuration = ref('')
   const selectedPetExerciseTypes = ref('')
-  const selectedPetExerciseLabels = ref('')
+  const selectedPetExerciseLabelsChoice = ref('')
+  const selectedPetExerciseLabels = ref<string[]>([])
   const selectedPetMedicineFrequency = ref('')
   const selectedPetMedicineIntake = ref('')
   const selectedPetMedicineTypes = ref('')
-  const selectedPetMedicineLabels = ref('')
+  const selectedPetMedicineLabelsChoice = ref('')
+  const selectedPetMedicineLabels = ref<string[]>([])
 
   const petsToAdd = ref<Array<{
     type: string
@@ -60,11 +62,13 @@
     selectedPetExerciseFrequency.value = ''
     selectedPetExerciseDuration.value = ''
     selectedPetExerciseTypes.value = ''
-    selectedPetExerciseLabels.value = ''
+    selectedPetExerciseLabelsChoice.value = ''
+    selectedPetExerciseLabels.value = []
     selectedPetMedicineFrequency.value = ''
     selectedPetMedicineIntake.value = ''
     selectedPetMedicineTypes.value = ''
-    selectedPetMedicineLabels.value = ''
+    selectedPetMedicineLabelsChoice.value = ''
+    selectedPetMedicineLabels.value = []
   }
 
   const openModal = () => {
@@ -123,7 +127,7 @@
     step.value = Number(selectedPetExerciseTypes.value) > 0 ? 'exerciseLabels' : 'medicine'
   }
   const submitPetExerciseLabels = () => {
-    if (!selectedPetExerciseLabels.value) return
+    if (!selectedPetExerciseLabelsChoice.value) return
     step.value = 'medicine'
   }
   const submitPetMedicineIntake = () => {
@@ -143,7 +147,7 @@
     step.value = 'medicineLabels'
   }
   const submitPetMedicineLabels = () => {
-    if (!selectedPetMedicineLabels.value) return
+    if (!selectedPetMedicineLabelsChoice.value) return
     savePet()
   }
   const savePet = () => {
@@ -157,11 +161,11 @@
       exerciseFrequency: selectedPetExerciseFrequency.value,
       exerciseDuration: selectedPetExerciseDuration.value,
       exerciseTypes: selectedPetExerciseTypes.value,
-      exerciseLabels: selectedPetExerciseLabels.value,
+      exerciseLabels: selectedPetExerciseLabels.value.join(','),
       medicineFrequency: selectedPetMedicineFrequency.value,
       medicineIntake: selectedPetMedicineIntake.value,
       medicineTypes: selectedPetMedicineTypes.value,
-      medicineLabels: selectedPetMedicineLabels.value,
+      medicineLabels: selectedPetMedicineLabels.value.join(','),
     })
     if (petsToAdd.value.length >= Number(numPets.value)) {
       finish()
@@ -261,7 +265,7 @@
       </template>
       <template v-else-if="step === 'exerciseDuration'">
         <h3>How long does your {{ selectedPet.toLowerCase() }} exercise each session?</h3>
-        <input type="number" min="0" v-model="selectedPetExerciseDuration">
+        <input type="number" min="0" v-model="selectedPetExerciseDuration" placeholder="Enter in minutes">
         <div class="actions">
           <button :disabled="!selectedPetExerciseDuration" @click="submitPetExerciseDuration">Submit</button>
           <button @click="isOpen = false">Cancel</button>
@@ -277,13 +281,13 @@
       </template>
       <template v-else-if="step === 'exerciseLabels'">
         <h3>Would you like to label the exercises?</h3>
-        <input type="text" placeholder="Enter yes or no" v-model="selectedPetExerciseLabels">
-        <div v-if="selectedPetExerciseLabels === 'yes'">
+        <input type="text" placeholder="Enter yes or no" v-model="selectedPetExerciseLabelsChoice">
+        <div v-if="selectedPetExerciseLabelsChoice.toLowerCase() === 'yes'">
           <h3>Label the different types of exercises here</h3>
-          <input v-for="exerciseType in Number(selectedPetExerciseTypes)" :key="exerciseType" type="text" :placeholder="`Exercise ${exerciseType}`">
+          <input v-for="exerciseType in Number(selectedPetExerciseTypes)" :key="exerciseType" v-model="selectedPetExerciseLabels[exerciseType - 1]" type="text" :placeholder="`Exercise ${exerciseType}`">
         </div>
         <div class="actions">
-          <button :disabled="!selectedPetExerciseLabels" @click="submitPetExerciseLabels">Submit</button>
+          <button :disabled="!selectedPetExerciseLabelsChoice" @click="submitPetExerciseLabels">Submit</button>
           <button @click="isOpen = false">Cancel</button>
         </div>
       </template>
@@ -313,13 +317,13 @@
       </template>
       <template v-else-if="step === 'medicineLabels'">
         <h3>Would you like to label the different types of medicines?</h3>
-        <input type="text" placeholder="Enter yes or no" v-model="selectedPetMedicineLabels">
-        <div v-if="selectedPetMedicineLabels === 'yes'">
+        <input type="text" placeholder="Enter yes or no" v-model="selectedPetMedicineLabelsChoice">
+        <div v-if="selectedPetMedicineLabelsChoice.toLowerCase() === 'yes'">
           <h3>Label the different types of medicines here</h3>
-          <input v-for="medicineType in Number(selectedPetMedicineTypes)" :key="medicineType" type="text" :placeholder="`Medicine ${medicineType}`">
+          <input v-for="medicineType in Number(selectedPetMedicineTypes)" :key="medicineType" v-model="selectedPetMedicineLabels[medicineType - 1]" type="text" :placeholder="`Medicine ${medicineType}`">
         </div>
         <div class="actions">
-          <button :disabled="!selectedPetMedicineLabels" @click="submitPetMedicineLabels">Submit</button>
+          <button :disabled="!selectedPetMedicineLabelsChoice" @click="submitPetMedicineLabels">Submit</button>
           <button @click="isOpen = false">Cancel</button>
         </div>
       </template>
