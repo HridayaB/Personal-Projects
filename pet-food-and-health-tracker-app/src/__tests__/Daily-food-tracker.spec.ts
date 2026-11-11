@@ -27,7 +27,7 @@ const base = {
 const seedPet = (overrides: Partial<typeof base> = {}) =>
   addPet({ ...base, ...overrides } as Parameters<typeof addPet>[0])
 
-const todayDate = () => new Date().toLocaleDateString('en-CA')
+const todayDate = () => new Date().toLocaleDateString('en-US')
 
 describe('DailyFoodTracker', () => {
   beforeEach(() => localStorage.clear())

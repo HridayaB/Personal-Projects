@@ -22,6 +22,9 @@
   <p>
     <router-link to="/daily-medicine-tracker">Daily Medicine Tracker</router-link>
   </p>
+  <p>
+    <router-link to="/daily-potty-tracker">Daily Potty Tracker</router-link>
+  </p>
 </template>
 
 <style scoped>
