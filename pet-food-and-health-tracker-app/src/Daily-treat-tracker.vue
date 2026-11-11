@@ -7,7 +7,7 @@
   }
 
   const trackedPets = ref<TrackedPet[]>([])
-  const todayDate = new Date().toLocaleDateString('en-CA')
+  const todayDate = new Date().toLocaleDateString('en-US')
 
   const logKeyFor = (petId: string) => `treatLog:${petId}:${todayDate}`
 
