@@ -1,9 +1,7 @@
 <script setup lang="ts">
   import {ref, computed} from 'vue'
-  import {useRouter} from 'vue-router'
-  import { addPet } from './pets'
+  import { addPet, getPets } from './pets'
 
-  const router = useRouter()
   const isOpen = ref(false)
   const step = ref<'numPets' | 'pet' | 'name' | 'weight' | 'breed' | 'food' | 'treat' | 'exercise' | 'exerciseDuration' | 'exerciseTypes' | 'exerciseLabels' | 'medicine' | 'medicineFrequency' | 'medicineTypes' | 'medicineLabels'>('pet')
   const numPets = ref('')
@@ -23,6 +21,7 @@
   const selectedPetMedicineTypes = ref('')
   const selectedPetMedicineLabelsChoice = ref('')
   const selectedPetMedicineLabels = ref<string[]>([])
+  const showTrackerOptions = ref(getPets().length > 0)
 
   const petsToAdd = ref<Array<{
     type: string
@@ -82,7 +81,7 @@
   const finish = () => {
     petsToAdd.value.forEach((pet) => addPet(pet))
     isOpen.value = false
-    router.push('/daily-food-tracker')
+    showTrackerOptions.value = true
   }
 
   const submitNumPets = () => {
@@ -328,6 +327,28 @@
         </div>
       </template>
     </div>
+  </div>
+
+  <div v-if="showTrackerOptions === true" class="show-tracker-options">
+    <p> That is all we need from you. You can now start tracking your pet's food and health using one of the following tracker.</p>
+    <p>
+      <router-link to="/">Home</router-link>
+    </p>
+    <p>
+      <router-link to="/daily-food-tracker">Daily Food Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-treat-tracker'>Daily Treat Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-exercise-tracker'>Daily Exercise Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-medicine-tracker'>Daily Medicine Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-potty-tracker'>Daily Potty Tracker</router-link>
+    </p>
   </div>
 </template>
 

@@ -9,6 +9,11 @@ const makeRouter = () => createRouter({
   routes: [
     { path: '/daily-treat-tracker', component: DailyTreatTracker },
     { path: '/get-started', component: { template: '<div>Get Started</div>' } },
+    { path: '/homeView', component: { template: '<div>Home</div>' } },
+    { path: '/daily-food-tracker', component: { template: '<div>Daily Food Tracker</div>' } },
+    { path: '/daily-exercise-tracker', component: { template: '<div>Daily Exercise Tracker</div>' } },
+    { path: '/daily-medicine-tracker', component: { template: '<div>Daily Medicine Tracker</div>' } },
+    { path: '/daily-potty-tracker', component: { template: '<div>Daily Potty Tracker</div>' } },
   ],
 })
 
@@ -113,5 +118,65 @@ describe('DailyTreatTracker', () => {
     await logWhiskers().trigger('click')
     expect(wrapper.text()).toContain('2 of 3 treats given today.')
     expect(wrapper.text()).toContain('0 of 2 treats given today.')
+  })
+
+  it('links to the home page', async () => {
+    seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const router = makeRouter()
+    const wrapper = mount(DailyTreatTracker, { global: { plugins: [router] } })
+    await router.isReady()
+    const link = wrapper.find("a[href='/']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Home')
+  })
+
+  it('links to the get-started page', async () => {
+    seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const router = makeRouter()
+    const wrapper = mount(DailyTreatTracker, { global: { plugins: [router] } })
+    await router.isReady()
+    const link = wrapper.find("a[href='/get-started']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Get Started')
+  })
+
+  it('links to the daily food tracker page', async () => {
+    seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const router = makeRouter()
+    const wrapper = mount(DailyTreatTracker, { global: { plugins: [router] } })
+    await router.isReady()
+    const link = wrapper.find("a[href='/daily-food-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Food Tracker')
+  })
+
+  it('links to the daily exercise tracker page', async () => {
+    seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const router = makeRouter()
+    const wrapper = mount(DailyTreatTracker, { global: { plugins: [router] } })
+    await router.isReady()
+    const link = wrapper.find("a[href='/daily-exercise-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Exercise Tracker')
+  })
+
+  it('links to the daily medicine tracker page', async () => {
+    seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const router = makeRouter()
+    const wrapper = mount(DailyTreatTracker, { global: { plugins: [router] } })
+    await router.isReady()
+    const link = wrapper.find("a[href='/daily-medicine-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Medicine Tracker')
+  })
+
+  it('links to the daily potty tracker page', async () => {
+    seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const router = makeRouter()
+    const wrapper = mount(DailyTreatTracker, { global: { plugins: [router] } })
+    await router.isReady()
+    const link = wrapper.find("a[href='/daily-potty-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Potty Tracker')
   })
 })

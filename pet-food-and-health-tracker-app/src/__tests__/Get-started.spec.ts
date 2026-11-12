@@ -8,7 +8,12 @@ const makeRouter = () =>
     history: createMemoryHistory(),
     routes: [
       { path: '/get-started', component: GetStarted },
-      { path: '/daily-food-tracker', component: { template: '<div>Tracker</div>' } },
+      { path: '/homeView', component: { template: '<div>Home</div>' } },
+      { path: '/daily-food-tracker', component: { template: '<div>Daily Food Tracker</div>' } },
+      { path: '/daily-treat-tracker', component: { template: '<div>Daily Treat Tracker</div>' } },
+      { path: '/daily-exercise-tracker', component: { template: '<div>Daily Exercise Tracker</div>' } },
+      { path: '/daily-medicine-tracker', component: { template: '<div>Daily Medicine Tracker</div>' } },
+      { path: '/daily-potty-tracker', component: { template: '<div>Daily Potty Tracker</div>' } },
     ],
   })
 
@@ -47,7 +52,7 @@ describe('GetStarted', () => {
     expect(submitButton?.attributes('disabled')).toBeUndefined()
   })
 
-  it('does not navigate to the food tracker page with the selected pet', async () => {
+  it('does not navigate to any other page with the selected pet', async () => {
     const { wrapper, router } = await mountView()
     const push = vi.spyOn(router, 'push')
     await wrapper.find('button').trigger('click')
@@ -55,7 +60,12 @@ describe('GetStarted', () => {
     await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
     await wrapper.find('select').setValue('Cat')
     await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    expect(push).not.toHaveBeenCalledWith('/homeView?pet=Cat')
     expect(push).not.toHaveBeenCalledWith('/daily-food-tracker?pet=Cat')
+    expect(push).not.toHaveBeenCalledWith('/daily-treat-tracker?pet=Cat')
+    expect(push).not.toHaveBeenCalledWith('/daily-exercise-tracker?pet=Cat')
+    expect(push).not.toHaveBeenCalledWith('/daily-medicine-tracker?pet=Cat')
+    expect(push).not.toHaveBeenCalledWith('/daily-potty-tracker?pet=Cat')
   })
 
   it('closes the modal when the cancel button is clicked', async () => {
@@ -107,8 +117,7 @@ describe('GetStarted', () => {
   })
 
   it('saves the selected pet, breed, foodFrequency, and treatFrequency to localStorage when the submit button is clicked', async () => {
-    const { wrapper, router } = await mountView()
-    const push = vi.spyOn(router, 'push')
+    const { wrapper } = await mountView()
     await wrapper.find('button').trigger('click')
     await wrapper.find('input[type="number"]').setValue('1')
     await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
@@ -164,7 +173,6 @@ describe('GetStarted', () => {
       medicineLabels: 'Med1',
     })
     expect(localStorage.getItem('activePet')).toBe(pets[0].id)
-    expect(push).toHaveBeenCalledWith('/daily-food-tracker')
   })
 
   it('does not let user click submit when breed is not entered', async () => {
@@ -768,5 +776,383 @@ describe('GetStarted', () => {
     await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
     await wrapper.find('input[type="text"]').setValue('yes')
     expect(wrapper.text()).toContain('Label the different types of medicines here')
+  })
+
+  it('checks if there is a link to the home page after user is done registering their pet\'s information', async () => {
+    const { wrapper, router } = await mountView()
+    await router.isReady()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Buddy')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('50')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Siberian Husky')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('5')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('30')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const exerciseLabelInputs = wrapper.findAll('input[type="text"]')
+    await exerciseLabelInputs[1]!.setValue('Walk')
+    await exerciseLabelInputs[2]!.setValue('Run')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const medicineLabelInputs = wrapper.findAll('input[type="text"]')
+    await medicineLabelInputs[1]!.setValue('Med1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    const pets = JSON.parse(localStorage.getItem('pets')!)
+    expect(pets).toHaveLength(1)
+    expect(pets[0]).toMatchObject({
+      type: 'Dog',
+      name: 'Buddy',
+      weight: 50,
+      breed: 'Siberian Husky',
+      foodFrequency: 2,
+      treatFrequency: 5,
+      exerciseFrequency: 2,
+      exerciseDuration: 30,
+      exerciseTypes: 2,
+      exerciseLabels: 'Walk,Run',
+      medicineFrequency: 1,
+      medicineIntake: 'yes',
+      medicineTypes: 1,
+      medicineLabels: 'Med1',
+    })
+    const wrap = mount(GetStarted, { global: { plugins: [router] } })
+    const link = wrap.find("a[href='/']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Home')
+  })
+
+  it('checks if there is a link to the daily food tracker page after user is done registering their pet\'s information', async () => {
+    const { wrapper, router } = await mountView()
+    await router.isReady()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Buddy')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('50')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Siberian Husky')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('5')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('30')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const exerciseLabelInputs = wrapper.findAll('input[type="text"]')
+    await exerciseLabelInputs[1]!.setValue('Walk')
+    await exerciseLabelInputs[2]!.setValue('Run')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const medicineLabelInputs = wrapper.findAll('input[type="text"]')
+    await medicineLabelInputs[1]!.setValue('Med1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    const pets = JSON.parse(localStorage.getItem('pets')!)
+    expect(pets).toHaveLength(1)
+    expect(pets[0]).toMatchObject({
+      type: 'Dog',
+      name: 'Buddy',
+      weight: 50,
+      breed: 'Siberian Husky',
+      foodFrequency: 2,
+      treatFrequency: 5,
+      exerciseFrequency: 2,
+      exerciseDuration: 30,
+      exerciseTypes: 2,
+      exerciseLabels: 'Walk,Run',
+      medicineFrequency: 1,
+      medicineIntake: 'yes',
+      medicineTypes: 1,
+      medicineLabels: 'Med1',
+    })
+    const wrap = mount(GetStarted, { global: { plugins: [router] } })
+    const link = wrap.find("a[href='/daily-food-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Food Tracker')
+  })
+
+  it('checks if there is a link to the daily treat tracker page after user is done registering their pet\'s information', async () => {
+    const { wrapper, router } = await mountView()
+    await router.isReady()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Buddy')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('50')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Siberian Husky')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('5')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('30')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const exerciseLabelInputs = wrapper.findAll('input[type="text"]')
+    await exerciseLabelInputs[1]!.setValue('Walk')
+    await exerciseLabelInputs[2]!.setValue('Run')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const medicineLabelInputs = wrapper.findAll('input[type="text"]')
+    await medicineLabelInputs[1]!.setValue('Med1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    const pets = JSON.parse(localStorage.getItem('pets')!)
+    expect(pets).toHaveLength(1)
+    expect(pets[0]).toMatchObject({
+      type: 'Dog',
+      name: 'Buddy',
+      weight: 50,
+      breed: 'Siberian Husky',
+      foodFrequency: 2,
+      treatFrequency: 5,
+      exerciseFrequency: 2,
+      exerciseDuration: 30,
+      exerciseTypes: 2,
+      exerciseLabels: 'Walk,Run',
+      medicineFrequency: 1,
+      medicineIntake: 'yes',
+      medicineTypes: 1,
+      medicineLabels: 'Med1',
+    })
+    const wrap = mount(GetStarted, { global: { plugins: [router] } })
+    const link = wrap.find("a[href='/daily-treat-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Treat Tracker')
+  })
+
+  it('checks if there is a link to the daily exercise tracker page after user is done registering their pet\'s information', async () => {
+    const { wrapper, router } = await mountView()
+    await router.isReady()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Buddy')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('50')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Siberian Husky')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('5')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('30')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const exerciseLabelInputs = wrapper.findAll('input[type="text"]')
+    await exerciseLabelInputs[1]!.setValue('Walk')
+    await exerciseLabelInputs[2]!.setValue('Run')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const medicineLabelInputs = wrapper.findAll('input[type="text"]')
+    await medicineLabelInputs[1]!.setValue('Med1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    const pets = JSON.parse(localStorage.getItem('pets')!)
+    expect(pets).toHaveLength(1)
+    expect(pets[0]).toMatchObject({
+      type: 'Dog',
+      name: 'Buddy',
+      weight: 50,
+      breed: 'Siberian Husky',
+      foodFrequency: 2,
+      treatFrequency: 5,
+      exerciseFrequency: 2,
+      exerciseDuration: 30,
+      exerciseTypes: 2,
+      exerciseLabels: 'Walk,Run',
+      medicineFrequency: 1,
+      medicineIntake: 'yes',
+      medicineTypes: 1,
+      medicineLabels: 'Med1',
+    })
+    const wrap = mount(GetStarted, { global: { plugins: [router] } })
+    const link = wrap.find("a[href='/daily-exercise-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Exercise Tracker')
+  })
+
+  it('checks if there is a link to the daily medicine tracker page after user is done registering their pet\'s information', async () => {
+    const { wrapper, router } = await mountView()
+    await router.isReady()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Buddy')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('50')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Siberian Husky')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('5')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('30')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const exerciseLabelInputs = wrapper.findAll('input[type="text"]')
+    await exerciseLabelInputs[1]!.setValue('Walk')
+    await exerciseLabelInputs[2]!.setValue('Run')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const medicineLabelInputs = wrapper.findAll('input[type="text"]')
+    await medicineLabelInputs[1]!.setValue('Med1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    const pets = JSON.parse(localStorage.getItem('pets')!)
+    expect(pets).toHaveLength(1)
+    expect(pets[0]).toMatchObject({
+      type: 'Dog',
+      name: 'Buddy',
+      weight: 50,
+      breed: 'Siberian Husky',
+      foodFrequency: 2,
+      treatFrequency: 5,
+      exerciseFrequency: 2,
+      exerciseDuration: 30,
+      exerciseTypes: 2,
+      exerciseLabels: 'Walk,Run',
+      medicineFrequency: 1,
+      medicineIntake: 'yes',
+      medicineTypes: 1,
+      medicineLabels: 'Med1',
+    })
+    const wrap = mount(GetStarted, { global: { plugins: [router] } })
+    const link = wrap.find("a[href='/daily-medicine-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Medicine Tracker')
+  })
+
+  it('checks if there is a link to the daily potty tracker page after user is done registering their pet\'s information', async () => {
+    const { wrapper, router } = await mountView()
+    await router.isReady()
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('select').setValue('Dog')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Buddy')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('50')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('Siberian Husky')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('5')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('30')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('2')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const exerciseLabelInputs = wrapper.findAll('input[type="text"]')
+    await exerciseLabelInputs[1]!.setValue('Walk')
+    await exerciseLabelInputs[2]!.setValue('Run')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="number"]').setValue('1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    await wrapper.find('input[type="text"]').setValue('yes')
+    const medicineLabelInputs = wrapper.findAll('input[type="text"]')
+    await medicineLabelInputs[1]!.setValue('Med1')
+    await wrapper.findAll('button').find(b => b.text() === 'Submit')!.trigger('click')
+    const pets = JSON.parse(localStorage.getItem('pets')!)
+    expect(pets).toHaveLength(1)
+    expect(pets[0]).toMatchObject({
+      type: 'Dog',
+      name: 'Buddy',
+      weight: 50,
+      breed: 'Siberian Husky',
+      foodFrequency: 2,
+      treatFrequency: 5,
+      exerciseFrequency: 2,
+      exerciseDuration: 30,
+      exerciseTypes: 2,
+      exerciseLabels: 'Walk,Run',
+      medicineFrequency: 1,
+      medicineIntake: 'yes',
+      medicineTypes: 1,
+      medicineLabels: 'Med1',
+    })
+    const wrap = mount(GetStarted, { global: { plugins: [router] } })
+    const link = wrap.find("a[href='/daily-potty-tracker']")
+    expect(link.exists()).toBe(true)
+    expect(link.text()).toContain('Daily Potty Tracker')
   })
 })
