@@ -66,20 +66,45 @@
 
 <template>
   <h2>Daily Potty Tracker</h2>
-  <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
+  <div v-if="trackedPets.length === 0" class="setup-prompt">
     <p>
-      Tracking for <strong>{{ pet.name }}</strong>
-      <span v-if="pet.breed"> ({{ pet.breed }})</span> — {{ todayDate }} — {{ currentTime }}
+      It looks like you haven't set up your pet's information yet. <router-link to="/get-started">You can get started here.</router-link>
     </p>
-    <p>{{ progressOf(pet) }}</p>
-    <button :data-test="`log-${pet.id}`" @click="logPottyBreak(pet)">Log Potty Break</button>
-    <div v-if="pet.pottyBreaks.length">
-      <h3>Today's potty breaks</h3>
-      <ul>
-        <li v-for="(time, index) in pet.pottyBreaks" :key="`${time}-${index}`">{{ time }} — Potty break</li>
-      </ul>
+  </div>
+  <div v-else>
+    <p>
+      <router-link to="/">Home</router-link>
+    </p>
+    <p>
+      <router-link to="/get-started">Get Started</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-food-tracker'>Daily Food Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-treat-tracker'>Daily Treat Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-exercise-tracker'>Daily Exercise Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-medicine-tracker'>Daily Medicine Tracker</router-link>
+    </p>
+    <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
+      <p>
+        Tracking for <strong>{{ pet.name }}</strong>
+        <span v-if="pet.breed"> ({{ pet.breed }})</span> — {{ todayDate }} — {{ currentTime }}
+      </p>
+      <p>{{ progressOf(pet) }}</p>
+      <button :data-test="`log-${pet.id}`" @click="logPottyBreak(pet)">Log Potty Break</button>
+      <div v-if="pet.pottyBreaks.length">
+        <h3>Today's potty breaks</h3>
+        <ul>
+          <li v-for="(time, index) in pet.pottyBreaks" :key="`${time}-${index}`">{{ time }} — Potty break</li>
+        </ul>
+      </div>
+      <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s potty break count</button>
     </div>
-    <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s potty break count</button>
   </div>
 </template>
 

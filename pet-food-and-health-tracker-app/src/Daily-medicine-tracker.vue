@@ -59,6 +59,24 @@
   </div>
 
   <div v-else>
+    <p>
+      <router-link to="/">Home</router-link>
+    </p>
+    <p>
+      <router-link to="/get-started">Get Started</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-food-tracker'>Daily Food Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-treat-tracker'>Daily Treat Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-exercise-tracker'>Daily Exercise Tracker</router-link>
+    </p>
+    <p>
+      <router-link to='/daily-potty-tracker'>Daily Potty Tracker</router-link>
+    </p>
     <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
       <p>
         Tracking for <strong>{{ pet.name }}</strong>
