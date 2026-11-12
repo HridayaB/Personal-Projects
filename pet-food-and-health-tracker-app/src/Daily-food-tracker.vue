@@ -1,12 +1,14 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
-  import { getPets, type Pet } from './pets'
+  import { getPets, deletePet, type Pet } from './pets'
 
   interface TrackedPet extends Pet {
     feedCount: number
   }
 
   const trackedPets = ref<TrackedPet[]>([])
+  const showRemovePetPopup = ref(false)
+  const petToRemove = ref<TrackedPet | null>(null)
   const todayDate = new Date().toLocaleDateString('en-US')
 
   const logKeyFor = (petId: string) => `foodLog:${petId}:${todayDate}`
@@ -28,9 +30,40 @@
     localStorage.setItem(logKeyFor(p.id), String(p.feedCount))
   }
 
+  const removeLog = (p: TrackedPet) => {
+    if (p.feedCount === 0) return
+    p.feedCount -= 1
+    localStorage.setItem(logKeyFor(p.id), String(p.feedCount))
+  }
+
   const resetLog = (p: TrackedPet) => {
     p.feedCount = 0
     localStorage.removeItem(logKeyFor(p.id))
+  }
+
+  const askRemovePet = (p: TrackedPet) => {
+    petToRemove.value = p
+    showRemovePetPopup.value = true
+  }
+
+  const cancelRemovePet = () => {
+    showRemovePetPopup.value = false
+    petToRemove.value = null
+  }
+
+  const removeFromThisTracker = () => {
+    if (!petToRemove.value) return
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petToRemove.value!.id)
+    cancelRemovePet()
+  }
+
+  const removeFromAllTrackers = () => {
+    if (!petToRemove.value) return
+    const petId = petToRemove.value.id
+    deletePet(petId)
+    localStorage.removeItem(logKeyFor(petId))
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
+    cancelRemovePet()
   }
 </script>
 
@@ -69,7 +102,19 @@
       <p>{{ progressOf(pet) }}</p>
       <p v-if="limitOf(pet)">Remaining feedings for the day: {{ remainingOf(pet) }}</p>
       <button :disabled="remainingOf(pet) === 0" :data-test="`log-${pet.id}`" @click="logFeeding(pet)">Log feeding for {{ pet.name }}</button>
+      <button :data-test="`remove-log-${pet.id}`" @click="removeLog(pet)">Remove feeding log for {{ pet.name }}</button>
       <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s feed count</button>
+      <button :data-test="`remove-pet-${pet.id}`" @click="askRemovePet(pet)">Remove {{ pet.name }} from your pet list</button>
+    </div>
+  </div>
+
+  <div v-if="showRemovePetPopup" class="remove-pet-overlay">
+    <div class="remove-pet-popup">
+      <h3>Remove {{ petToRemove?.name }} from your pet list?</h3>
+      <p>Would you like to remove {{ petToRemove?.name }} from all trackers or only this Daily Food Tracker?</p>
+      <button @click="removeFromThisTracker">Remove from this tracker</button>
+      <button @click="removeFromAllTrackers">Remove from all trackers</button>
+      <button @click="cancelRemovePet">Cancel</button>
     </div>
   </div>
 </template>
