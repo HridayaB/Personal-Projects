@@ -194,7 +194,7 @@ describe('DailyMedicineTracker', () => {
     expect(link.text()).toContain('Daily Potty Tracker')
   })
 
-   it('removes a log from the medicine count', async () => {
+  it('removes a log from the medicine count', async () => {
     const pet = seedPet({ name: 'Buddy', medicineFrequency: '2' })
     const { wrapper } = await mountView()
     await wrapper.find(`[data-test="log-${pet.id}"]`).trigger('click')
