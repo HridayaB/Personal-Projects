@@ -110,7 +110,6 @@
 
   <div v-if="showRemovePetPopup" class="remove-pet-overlay">
     <div class="remove-pet-popup">
-      <h3>Remove {{ petToRemove?.name }} from your pet list?</h3>
       <p>Would you like to remove {{ petToRemove?.name }} from all trackers or only this Daily Food Tracker?</p>
       <button @click="removeFromThisTracker">Remove from this tracker</button>
       <button @click="removeFromAllTrackers">Remove from all trackers</button>

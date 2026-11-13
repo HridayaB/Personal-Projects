@@ -1,12 +1,14 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
-  import { getPets, type Pet } from './pets'
+  import { getPets, deletePet, type Pet } from './pets'
 
   interface TrackedPet extends Pet {
     treatCount: number
   }
 
   const trackedPets = ref<TrackedPet[]>([])
+  const showRemovePetPopup = ref(false)
+  const petToRemove = ref<TrackedPet | null>(null)
   const todayDate = new Date().toLocaleDateString('en-US')
 
   const logKeyFor = (petId: string) => `treatLog:${petId}:${todayDate}`
@@ -28,9 +30,40 @@
     localStorage.setItem(logKeyFor(p.id), String(p.treatCount))
   }
 
+  const removeLog = (p: TrackedPet) => {
+    if (p.treatCount === 0) return
+    p.treatCount -= 1
+    localStorage.setItem(logKeyFor(p.id), String(p.treatCount))
+  }
+
   const resetLog = (p: TrackedPet) => {
     p.treatCount = 0
     localStorage.removeItem(logKeyFor(p.id))
+  }
+
+  const askRemovePet = (p: TrackedPet) => {
+    petToRemove.value = p
+    showRemovePetPopup.value = true
+  }
+
+  const cancelRemovePet = () => {
+    showRemovePetPopup.value = false
+    petToRemove.value = null
+  }
+
+  const removeFromThisTracker = () => {
+    if (!petToRemove.value) return
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petToRemove.value!.id)
+    cancelRemovePet()
+  }
+
+  const removeFromAllTrackers = () => {
+    if (!petToRemove.value) return
+    const petId = petToRemove.value.id
+    deletePet(petId)
+    localStorage.removeItem(logKeyFor(petId))
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
+    cancelRemovePet()
   }
 </script>
 
@@ -69,7 +102,18 @@
       <p>{{ progressOf(pet) }}</p>
       <p v-if="limitOf(pet)">Remaining treats for the day: {{ remainingOf(pet)}}</p>
       <button :disabled="remainingOf(pet) === 0" :data-test="`log-${pet.id}`" @click="logTreat(pet)">Log treat</button>
+      <button :data-test="`remove-log-${pet.id}`" @click="removeLog(pet)">Remove treat log for {{ pet.name }}</button>
       <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s treat count</button>
+      <button :data-test="`remove-pet-${pet.id}`" @click="askRemovePet(pet)">Remove {{ pet.name }} from your pet list</button>
+    </div>
+  </div>
+
+  <div v-if="showRemovePetPopup" class="remove-pet-overlay">
+    <div class="remove-pet-popup">
+      <p>Would you like to remove {{ petToRemove?.name }} from all trackers or only this Daily Treat Tracker?</p>
+      <button @click="removeFromThisTracker">Remove from this tracker</button>
+      <button @click="removeFromAllTrackers">Remove from all trackers</button>
+      <button @click="cancelRemovePet">Cancel</button>
     </div>
   </div>
 </template>

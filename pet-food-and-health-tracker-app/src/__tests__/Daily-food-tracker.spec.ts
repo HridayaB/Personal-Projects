@@ -207,23 +207,39 @@ describe('DailyFoodTracker', () => {
     expect(localStorage.getItem(`foodLog:${buddy.id}:${todayDate()}`)).toBe('1')
   })
 
-  it('removes a pet', async () => {
-    const pet = seedPet({ name: 'Buddy', foodFrequency: '2' })
+  it('removes a pet from this tracker only', async () => {
+    const pet = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const { wrapper } = await mountView()
     await wrapper.find(`[data-test="remove-pet-${pet.id}"]`).trigger('click')
+    expect(wrapper.text()).toContain('Buddy')
+    expect(wrapper.text()).toContain('Remove from this tracker')
+    await wrapper.findAll('button').find(button => button.text() === 'Remove from this tracker')!.trigger('click')
     expect(wrapper.text()).not.toContain('Buddy')
     expect(wrapper.find(`[data-test="log-${pet.id}"]`).exists()).toBe(false)
+    expect(JSON.parse(localStorage.getItem('pets') || '[]')).toHaveLength(1)
   })
 
-  it('removes the correct pet', async () => {
-    const buddy = seedPet({ name: 'Buddy', foodFrequency: '2' })
-    const whiskers = seedPet({ name: 'Whiskers', foodFrequency: '3' })
+  it('removes the correct pet from this tracker only', async () => {
+    const buddy = seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const whiskers = seedPet({ name: 'Whiskers', treatFrequency: '3' })
     const { wrapper } = await mountView()
     await wrapper.find(`[data-test="remove-pet-${buddy.id}"]`).trigger('click')
+    await wrapper.findAll('button').find(button => button.text() === 'Remove from this tracker')!.trigger('click')
     expect(wrapper.text()).not.toContain('Buddy')
     expect(wrapper.text()).toContain('Whiskers')
     expect(wrapper.find(`[data-test="log-${buddy.id}"]`).exists()).toBe(false)
     expect(wrapper.find(`[data-test="log-${whiskers.id}"]`).exists()).toBe(true)
+  })
+
+  it('removes a pet from all trackers', async () => {
+    const pet = seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const { wrapper } = await mountView()
+    await wrapper.find(`[data-test="remove-pet-${pet.id}"]`).trigger('click')
+    await wrapper.findAll('button').find(button => button.text() === 'Remove from all trackers')!.trigger('click')
+    expect(wrapper.text()).not.toContain('Buddy')
+    expect(wrapper.find(`[data-test="log-${pet.id}"]`).exists()).toBe(false)
+    const savedPets = JSON.parse(localStorage.getItem('pets') || '[]')
+    expect(savedPets).toHaveLength(0)
   })
 })
 
