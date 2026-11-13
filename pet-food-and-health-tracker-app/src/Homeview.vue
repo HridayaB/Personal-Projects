@@ -17,23 +17,15 @@
     </label>
     <p>
       Welcome to the Pet Food and Health Tracker! This app helps you keep track of your pet's daily food and treat intake, as well other health-related information.
-      If you are new here, then let's <router-link to="/get-started">get started</router-link>!
+      If you are new here, then let's <router-link to="/get-started" id="get-started-link">get started</router-link>!
     </p>
-    <p>
-      <router-link to="/daily-food-tracker">Daily Food Tracker</router-link>
-    </p>
-    <p>
-      <router-link to="/daily-treat-tracker">Daily Treat Tracker</router-link>
-    </p>
-    <p>
-      <router-link to="/daily-exercise-tracker">Daily Exercise Tracker</router-link>
-    </p>
-    <p>
-      <router-link to="/daily-medicine-tracker">Daily Medicine Tracker</router-link>
-    </p>
-    <p>
-      <router-link to="/daily-potty-tracker">Daily Potty Tracker</router-link>
-    </p>
+    <div class="tracker-links">
+        <router-link to="/daily-food-tracker" id="daily-food-tracker-link">Daily Food Tracker</router-link>
+        <router-link to="/daily-treat-tracker" id="daily-treat-tracker-link">Daily Treat Tracker</router-link>
+        <router-link to="/daily-exercise-tracker" id="daily-exercise-tracker-link">Daily Exercise Tracker</router-link>
+        <router-link to="/daily-medicine-tracker" id="daily-medicine-tracker-link">Daily Medicine Tracker</router-link>
+        <router-link to="/daily-potty-tracker" id="daily-potty-tracker-link">Daily Potty Tracker</router-link>
+    </div>
   </main>
 </template>
 
@@ -138,6 +130,91 @@
 
   label :deep(svg.moon-icon path) {
     fill: var(--moon-icon-color);
+  }
+
+  #get-started-link {
+    position: relative;
+    text-decoration: none;
+    color: #1a1a1a;
+    transition: 0.3s;
+  }
+
+  .dark-mode #get-started-link {
+    color: #f2f2f2;
+    transition: 0.3s;
+  }
+
+  #get-started-link::before {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #993638;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  #get-started-link:hover::before {
+    transform: scaleX(1);
+  }
+
+  .tracker-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+
+  #daily-food-tracker-link,
+  #daily-treat-tracker-link,
+  #daily-exercise-tracker-link,
+  #daily-medicine-tracker-link,
+  #daily-potty-tracker-link {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, background-color 0.3s, border-color 0.3s, box-shadow 0.2s;
+  }
+
+  #daily-food-tracker-link:hover,
+  #daily-treat-tracker-link:hover,
+  #daily-exercise-tracker-link:hover,
+  #daily-medicine-tracker-link:hover,
+  #daily-potty-tracker-link:hover {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  .dark-mode #daily-food-tracker-link,
+  .dark-mode #daily-treat-tracker-link,
+  .dark-mode #daily-exercise-tracker-link,
+  .dark-mode #daily-medicine-tracker-link,
+  .dark-mode #daily-potty-tracker-link {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #4a4a4a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark-mode #daily-food-tracker-link:hover,
+  .dark-mode #daily-treat-tracker-link:hover,
+  .dark-mode #daily-exercise-tracker-link:hover,
+  .dark-mode #daily-medicine-tracker-link:hover,
+  .dark-mode #daily-potty-tracker-link:hover {
+    border-color: #993638;
+    background-color: #3d3d3d;
   }
 
   h2 {

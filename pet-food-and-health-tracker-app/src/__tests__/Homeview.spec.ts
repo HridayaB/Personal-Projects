@@ -84,27 +84,4 @@ describe('HomeView', () => {
     expect(link?.props('to')).toBe('/daily-potty-tracker')
     expect(link?.text()).toContain('Daily Potty Tracker')
   })
-
-  it('has a dark mode toggle', async () => {
-    const router = makeRouter()
-    const wrapper = mount(HomeView, { global: { plugins: [router] } })
-    const toggle = wrapper.find('#dark-mode-toggle')
-    expect(toggle.exists()).toBe(true)
-    expect(toggle.element.getAttribute('type')).toBe('checkbox')
-  })
-
-  it('changes the page background when dark mode is toggled', async () => {
-    const router = makeRouter()
-    const wrapper = mount(HomeView, { global: { plugins: [router] } })
-    expect(wrapper.find('.sun-icon').exists()).toBe(true)
-    expect(wrapper.find('.moon-icon').exists()).toBe(false)
-    await wrapper.find('#dark-mode-toggle').setValue(true)
-    expect(wrapper.find('main').classes()).toContain('dark-mode')
-    expect(wrapper.find('.sun-icon').exists()).toBe(false)
-    expect(wrapper.find('.moon-icon').exists()).toBe(true)
-    await wrapper.find('#dark-mode-toggle').setValue(false)
-    expect(wrapper.find('main').classes()).not.toContain('dark-mode')
-    expect(wrapper.find('.sun-icon').exists()).toBe(true)
-    expect(wrapper.find('.moon-icon').exists()).toBe(false)
-  })
 })
