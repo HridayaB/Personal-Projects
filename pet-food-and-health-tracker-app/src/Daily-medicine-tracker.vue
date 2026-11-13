@@ -127,11 +127,13 @@
     </div>
   </div>
 
-  <div v-if="showRemovePetPopup && petToRemove">
-    <p>Remove {{ petToRemove.name }} from this tracker or all trackers?</p>
-    <button @click="removeFromThisTracker">Remove from this tracker</button>
-    <button @click="removeFromAllTrackers">Remove from all trackers</button>
-    <button @click="cancelRemovePet">Cancel</button>
+  <div v-if="showRemovePetPopup" class="remove-pet-overlay">
+    <div class="remove-pet-popup">
+      <p>Would you like to remove {{ petToRemove?.name }} from all trackers or only this Daily Medicine Tracker?</p>
+      <button @click="removeFromThisTracker">Remove from this tracker</button>
+      <button @click="removeFromAllTrackers">Remove from all trackers</button>
+      <button @click="cancelRemovePet">Cancel</button>
+    </div>
   </div>
 </template>
 

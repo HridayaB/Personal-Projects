@@ -1,12 +1,14 @@
 <script setup lang="ts">
   import { ref, onMounted, onUnmounted } from 'vue'
-  import { getPets, type Pet } from './pets'
+  import { getPets, deletePet, type Pet } from './pets'
 
   interface TrackedPet extends Pet {
     pottyBreaks: string[]
   }
 
   const trackedPets = ref<TrackedPet[]>([])
+  const showRemovePetPopup = ref(false)
+  const petToRemove = ref<TrackedPet | null>(null)
   const todayDate = new Date().toLocaleDateString('en-US')
   const currentTime = ref(new Date().toLocaleTimeString('en-US'))
   let clockInterval: ReturnType<typeof setInterval>
@@ -58,9 +60,40 @@
     localStorage.setItem(logKeyFor(p.id), JSON.stringify(p.pottyBreaks))
   }
 
+  const removeLog = (p: TrackedPet) => {
+    if (p.pottyBreaks.length === 0) return
+    p.pottyBreaks.pop()
+    localStorage.setItem(logKeyFor(p.id), JSON.stringify(p.pottyBreaks))
+  }
+
   const resetLog = (p: TrackedPet) => {
     p.pottyBreaks = []
     localStorage.removeItem(logKeyFor(p.id))
+  }
+
+  const askRemovePet = (p: TrackedPet) => {
+    petToRemove.value = p
+    showRemovePetPopup.value = true
+  }
+
+  const cancelRemovePet = () => {
+    showRemovePetPopup.value = false
+    petToRemove.value = null
+  }
+
+  const removeFromThisTracker = () => {
+    if (!petToRemove.value) return
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petToRemove.value!.id)
+    cancelRemovePet()
+  }
+
+  const removeFromAllTrackers = () => {
+    if (!petToRemove.value) return
+    const petId = petToRemove.value.id
+    deletePet(petId)
+    localStorage.removeItem(logKeyFor(petId))
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
+    cancelRemovePet()
   }
 </script>
 
@@ -96,7 +129,8 @@
         <span v-if="pet.breed"> ({{ pet.breed }})</span> — {{ todayDate }} — {{ currentTime }}
       </p>
       <p>{{ progressOf(pet) }}</p>
-      <button :data-test="`log-${pet.id}`" @click="logPottyBreak(pet)">Log Potty Break</button>
+      <button :data-test="`log-${pet.id}`" @click="logPottyBreak(pet)">Log potty break</button>
+      <button :data-test="`remove-log-${pet.id}`" @click="removeLog(pet)">Remove last potty break</button>
       <div v-if="pet.pottyBreaks.length">
         <h3>Today's potty breaks</h3>
         <ul>
@@ -104,6 +138,16 @@
         </ul>
       </div>
       <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s potty break count</button>
+      <button :data-test="`remove-pet-${pet.id}`" @click="askRemovePet(pet)">Remove {{ pet.name }}</button>
+    </div>
+  </div>
+
+  <div v-if="showRemovePetPopup" class="remove-pet-overlay">
+    <div class="remove-pet-popup">
+      <p>Would you like to remove {{ petToRemove?.name }} from all trackers or only this Daily Potty Tracker?</p>
+      <button @click="removeFromThisTracker">Remove from this tracker</button>
+      <button @click="removeFromAllTrackers">Remove from all trackers</button>
+      <button @click="cancelRemovePet">Cancel</button>
     </div>
   </div>
 </template>
