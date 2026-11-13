@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
-  import { getPets, type Pet } from './pets'
+  import { getPets, deletePet, type Pet } from './pets'
 
   interface TrackedPet extends Pet {
     medicineCount: number
@@ -10,6 +10,8 @@
   }
 
   const trackedPets = ref<TrackedPet[]>([])
+  const showRemovePetPopup = ref(false)
+  const petToRemove = ref<TrackedPet | null>(null)
   const todayDate = new Date().toLocaleDateString('en-US')
 
   const logKeyFor = (petId: string) => `medicineLog:${petId}:${todayDate}`
@@ -39,9 +41,40 @@
     localStorage.setItem(logKeyFor(p.id), String(p.medicineCount))
   }
 
+  const removeLog = (p: TrackedPet) => {
+    if (p.medicineCount === 0) return
+    p.medicineCount -= 1
+    localStorage.setItem(logKeyFor(p.id), String(p.medicineCount))
+  }
+
   const resetLog = (p: TrackedPet) => {
     p.medicineCount = 0
     localStorage.removeItem(logKeyFor(p.id))
+  }
+
+  const askRemovePet = (p: TrackedPet) => {
+    petToRemove.value = p
+    showRemovePetPopup.value = true
+  }
+
+  const cancelRemovePet = () => {
+    showRemovePetPopup.value = false
+    petToRemove.value = null
+  }
+
+  const removeFromThisTracker = () => {
+    if (!petToRemove.value) return
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petToRemove.value!.id)
+    cancelRemovePet()
+  }
+
+  const removeFromAllTrackers = () => {
+    if (!petToRemove.value) return
+    const petId = petToRemove.value.id
+    deletePet(petId)
+    localStorage.removeItem(logKeyFor(petId))
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
+    cancelRemovePet()
   }
 
   const selectedLabels = ref<Record<string, string>>({})
@@ -85,11 +118,20 @@
       <p>{{ progressOf(pet) }}</p>
       <p v-if="limitOf(pet)">Remaining medicine doses for the day: {{ remainingOf(pet) }}</p>
       <button :disabled="remainingOf(pet) === 0" :data-test="`log-${pet.id}`" @click="logMedicine(pet)">Log medicine dose</button>
+      <button :disabled="pet.medicineCount === 0" :data-test="`remove-log-${pet.id}`" @click="removeLog(pet)">Remove medicine dose</button>
       <div v-if="pet.medicineLabels.length">
         <button v-for="label in pet.medicineLabels" :key="label" :data-test="`medicine-label-${pet.id}-${label}`" :class="{ selected: selectedLabels[pet.id] === label }" @click="selectLabel(pet, label)">{{ label }}</button>
       </div>
       <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s medicine count</button>
+      <button :data-test="`remove-pet-${pet.id}`" @click="askRemovePet(pet)">Remove pet</button>
     </div>
+  </div>
+
+  <div v-if="showRemovePetPopup && petToRemove">
+    <p>Remove {{ petToRemove.name }} from this tracker or all trackers?</p>
+    <button @click="removeFromThisTracker">Remove from this tracker</button>
+    <button @click="removeFromAllTrackers">Remove from all trackers</button>
+    <button @click="cancelRemovePet">Cancel</button>
   </div>
 </template>
 
