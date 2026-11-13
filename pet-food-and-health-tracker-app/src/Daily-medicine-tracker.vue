@@ -97,7 +97,7 @@
         It looks like you haven't set up your pet's information yet. <router-link to="/get-started">You can get started here.</router-link>
       </p>
     </div>
-  
+
     <div v-else>
       <p>
         <router-link to="/">Home</router-link>
@@ -133,7 +133,7 @@
         <button :data-test="`remove-pet-${pet.id}`" @click="askRemovePet(pet)">Remove pet</button>
       </div>
     </div>
-  
+
     <div v-if="showRemovePetPopup" class="remove-pet-overlay">
       <div class="remove-pet-popup">
         <p>Would you like to remove {{ petToRemove?.name }} from all trackers or only this Daily Medicine Tracker?</p>
