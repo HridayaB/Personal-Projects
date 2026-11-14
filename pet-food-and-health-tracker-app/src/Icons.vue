@@ -5,12 +5,17 @@
 
   defineProps<{
     darkMode?: boolean
+    icon?: 'theme' | 'pet-food-1' | 'pet-food-2' | 'pet-food-3' | 'pet-food-4' | 'pet-food-5' | 'pet-food-6'|
+    'pet-treat-1' | 'pet-treat-2' | 'pet-treat-3' | 'pet-treat-4' | 'pet-treat-5' | 'pet-treat-6' |
+    'pet-exercise-1' | 'pet-exercise-2' | 'pet-exercise-3' | 'pet-exercise-4' | 'pet-exercise-5' | 'pet-exercise-6' |
+    'pet-medicine-1' | 'pet-medicine-2' | 'pet-medicine-3' | 'pet-medicine-4' | 'pet-medicine-5' | 'pet-medicine-6' |
+    'pet-potty-1' | 'pet-potty-2' | 'pet-potty-3' | 'pet-potty-4' | 'pet-potty-5' | 'pet-potty-6'
   }>()
 </script>
 
 <template>
   <!--Sun icon-->
-  <svg v-if="!darkMode" class="sun-icon" width="800px" height="800px" viewBox="0 -0.5 78 78" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <svg v-if="(!icon || icon === 'theme') && !darkMode" class="sun-icon" width="800px" height="800px" viewBox="0 -0.5 78 78" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <g clip-path="url(#clip0)">
       <path d="M76.5919 40.446L76.5492 40.3677C76.2218 39.8353 75.8148 39.3565 75.3438 38.9478C75.0539 38.6814 74.7815 38.3956 74.5291 38.0923C74.1137
       37.6591 73.8698 37.088 73.8419 36.4862C73.8148 35.8843 74.0056 35.293 74.3796 34.8231C75.6039 32.9614 76.2936 31.5799 75.9494 30.451C75.6052
@@ -66,7 +71,7 @@
     </defs>
   </svg>
   <!--Moon icon-->
-  <svg v-else class="moon-icon" width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <svg v-if="(!icon || icon === 'theme') && darkMode" class="moon-icon" width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path d="m9.16 10s-.59 2-.62 2.16.21.21.46.34 1.54-1.5 1.57-1.59 1 .28 1.28.18 0-.81 0-1 1.15-1.09 1.06-1.46-1.41-.18-1.75-.25-.41-1.71-.87-1.78-.66
     2-.72 2.1-1.57-.08-1.78 0-.29.4-.13.5zm-2 8.72a.89.89 0 0 0 -.25 1.37.88.88 0 0 0 1.38-.53c.15-.86-.37-1.3-1.13-.83zm32.53-12.21a1.71 1.71 0 0 0 -2.4-1.69
     1.74 1.74 0 0 0 -.63 2.85 1.8 1.8 0 0 0 3.03-1.16zm-2.11-1a.92.92 0 0 1 1.3.91 1 1 0 0 1 -1.64.63.94.94 0 0 1 .34-1.5zm10 8c.34.13.37 2.06.69 2.09s1-1.31
@@ -97,7 +102,7 @@
     1.61-1.25a1.14 1.14 0 0 0 -1.71-1.16zm.21 1.75a.59.59 0 0 1 0-1.12.53.53 0 0 1 .76.53c-.11.41-.42.74-.86.58z" fill="#1d1d1b"/>
   </svg>
   <!--Pet food 1-->
-  <svg class="pet-food-1" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.001 512.001" xml:space="preserve">
+  <svg v-if="icon === 'pet-food-1'" class="pet-food-1" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.001 512.001" xml:space="preserve">
     <path style="fill:#ED2601;" d="M109.123,44.468L57.216,195.301c-0.673,1.958-1.017,4.015-1.017,6.086v302.745h293.76V198.259
       l52.926-153.791H109.123z"/>
     <path style="fill:#FE9901;" d="M402.882,44.468l52.926,153.791c0,58.49,0,250.751,0,250.751c0,7.641-4.647,14.512-11.738,17.358
@@ -169,7 +174,7 @@
       C276.741,393.292,281.441,400.372,279.979,407.611z"/>
   </svg>
   <!--Pet food 2-->
-  <svg class="pet-food-2" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg v-if="icon === 'pet-food-2'" class="pet-food-2" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g id="SVGRepo_bgCarrier" stroke-width="0"/>
     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
     <g id="SVGRepo_iconCarrier">
@@ -217,7 +222,7 @@
     </g>
   </svg>
   <!--Pet food 3-->
-  <svg class="pet-food-3" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg v-if="icon === 'pet-food-3'" class="pet-food-3" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M144 120.283C143.821 120.201 143.654 120.159 143.5 120.159C88.9129 121.45 45.5 130.496 45.5 142.5L46.8694 179.702C23.889
     169.192 8 146.633 8 120.5C8 84.3253 38.4446 55 76 55C113.48 55 143.878 84.2081 144 120.283Z" fill="#FBAD36"/>
     <path fill-rule="evenodd" clip-rule="evenodd" d="M265 227.5L269.471 145.028C269.49 144.852 269.5 144.677 269.5 144.5C269.5 141.36 261.741 136.726 253.804 133.676C286.714
@@ -238,7 +243,7 @@
     108C40.748 109.995 43.4208 111.559 47.5 115.5M52 86.9999C55.9975 92.2121 57.7636 95.2705 60 101M79.5 89.9999C78.9409 96.2261 78.9053 99.5338 79.5 105" stroke="#000000" stroke-width="5" stroke-linecap="round"/>
   </svg>
   <!--Pet food 4-->
-  <svg class="pet-food-4" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="#000000">
+  <svg v-if="icon === 'pet-food-4'" class="pet-food-4" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="#000000">
     <g id="SVGRepo_bgCarrier" stroke-width="0"/>
     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
     <g id="SVGRepo_iconCarrier">
@@ -321,7 +326,7 @@
     </g>
   </svg>
   <!--Pet food 5-->
-  <svg class="pet-food-5" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-food-5'" class="pet-food-5" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 512 512" xml:space="preserve">
     <path style="fill:#99E5FF;" d="M431.878,214.171H80.122c-9.864,0-17.86-7.997-17.86-17.86v-73.335c0-9.864,7.997-17.86,17.86-17.86
       h351.756c9.864,0,17.86,7.997,17.86,17.86v73.335C449.738,206.174,441.742,214.171,431.878,214.171z"/>
@@ -349,7 +354,7 @@
     <path style="fill:#16A5D9;" d="M474.591,0H256v140.839h218.591c9.864,0,17.86-7.997,17.86-17.86V17.86C492.451,7.997,484.454,0,474.591,0z"/>
   </svg>
   <!--Pet food 6-->
-  <svg class="pet-food-6" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-food-6'" class="pet-food-6" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 511.978 511.978" xml:space="preserve">
     <path style="fill:#E5E8EC;" d="M106.678,287.987v191.992c0,17.655,66.856,31.999,149.322,31.999
       c82.457,0,149.299-14.344,149.299-31.999V287.987H106.678z"/>
@@ -432,13 +437,10 @@
     </g>
   </svg>
   <!--Pet treat 1-->
-  <svg class="pet-treat-1" version="1.1" id="Uploaded to svgrepo.com" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800px" height="800px" viewBox="0 0 64.00 64.00" xml:space="preserve" fill="#000000" stroke="#000000" stroke-width="0.96">
+  <svg v-if="icon === 'pet-treat-1'" class="pet-treat-1" version="1.1" id="Uploaded to svgrepo.com" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800px" height="800px" viewBox="0 0 64.00 64.00" xml:space="preserve" fill="#000000" stroke="#000000" stroke-width="0.96">
     <g id="SVGRepo_bgCarrier" stroke-width="0"/>
       <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#b9314c" stroke-width="1.28"/>
       <g id="SVGRepo_iconCarrier">
-        <style type="text/css"> .fandom_vijf{fill:#5096b4;} .fandom_zes{fill:#8bbcd5;} .fandom_acht{fill:#368fa1;} .fandom_negen{fill:#ff8080;} .fandom_tien{fill:#ff8080;} .fandom_veertien{fill:#fdfdfc;} .fandom_zestien{fill:#4D4D4D;} .fandom_negentien{fill:#b6aaaa;} .st0{fill:#FF786E;}
-          .st1{fill:#bd5151;} .st2{fill:#FFC865;} .st3{fill:#BE9148;} .st4{fill:#644638;} .st5{fill:#ff8080;} .st6{fill:#ff8080;} .st7{fill:#AA9991;} .st8{fill:#FFFAFA;} .st9{fill:#508D9B;} .st10{fill:#4B322A;} .st11{fill:#3A3A3A;}
-        </style>
         <g>
           <g>
             <path class="fandom_tien" d="M32,7C18.193,7,7,18.193,7,32h50C57,18.193,45.807,7,32,7z"/>
@@ -463,7 +465,7 @@
     </g>
   </svg>
   <!--Pet treat 2-->
-  <svg class="pet-treat-2" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg v-if="icon === 'pet-treat-2'" class="pet-treat-2" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M215.257 156.954L217.455 142.481C217.547 141.875 217.079 141.331 216.466 141.331H215.628C215.628
     141.331 215.628 68.3141 209.124 68.4466C205.54 68.5196 204.386 90.6298 204.073 110.476C202.798 93.9351 200.958 73.9428 198.633 58.9904C210.343
     51.639 223.298 49.6218 239.646 52.9713C279.725 61.1835 282.677 115.87 278.674 139.832C271.307 183.932 252.945 216.461 215.128 248.158C177.893
@@ -499,7 +501,7 @@
     229.902 58.8925 230.638 59.3344 231.092C70.8793 242.967 107.341 248.596 99.0432 226.26Z" stroke="#000000" stroke-width="5" stroke-linecap="round"/>
   </svg>
   <!--Pet treat 3-->
-  <svg class="pet-treat-3" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-treat-3'" class="pet-treat-3" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 511.999 511.999" xml:space="preserve">
     <path style="fill:#FED9A8;" d="M204.539,376.597c-0.251-0.251-0.514-0.487-0.769-0.733l172.467-172.466
       c0.248,0.255,0.482,0.517,0.733,0.769c28.947,28.947,75.882,28.947,104.83,0c28.948-28.947,28.948-75.882,0-104.83
@@ -532,10 +534,7 @@
       c0.016,2.282-0.883,4.477-2.498,6.091L141.917,314.339C140.319,315.94,138.148,316.837,135.888,316.837z"/>
   </svg>
   <!--Pet treat 4-->
-  <svg class="pet-treat-4" width="800px" height="800px" viewBox="-13.63 0 50.61 50.61" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <style>.cls-1{fill:#ff6368;}.cls-2{fill:#9ad7d2;}.cls-3{fill:#d34a5b;}.cls-4{fill:#354251;}.cls-5{fill:#74c1b9;}</style>
-    </defs>
+  <svg v-if="icon === 'pet-treat-4'" class="pet-treat-4" width="800px" height="800px" viewBox="-13.63 0 50.61 50.61" xmlns="http://www.w3.org/2000/svg">
     <g data-name="Layer 2" id="Layer_2">
       <g data-name="Layer 1" id="Layer_1-2">
         <g data-name="ice cream" id="ice_cream">
@@ -557,7 +556,7 @@
     </g>
   </svg>
   <!--Pet treat 5-->
-  <svg height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-treat-5'" class="pet-treat-5" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 512 512" xml:space="preserve">
     <g>
       <path style="fill:#C97767;" d="M395.26,140.705H116.738c-13.756,0-24.908-11.152-24.908-24.908V98.79
@@ -627,7 +626,7 @@
       c4.525-3.638,5.246-10.279,1.608-14.802C266.78,375.598,263.724,374.255,260.643,374.255z"/>
   </svg>
   <!--Pet treat 6-->
-  <svg class="pet-treat-6" version="1.1" id="designs" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800px" height="800px" viewBox="-3.2 -3.2 38.40 38.40" xml:space="preserve" fill="#000000" transform="rotate(-45)">
+  <svg v-if="icon === 'pet-treat-6'" class="pet-treat-6" version="1.1" id="designs" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800px" height="800px" viewBox="-3.2 -3.2 38.40 38.40" xml:space="preserve" fill="#000000" transform="rotate(-45)">
     <g id="SVGRepo_bgCarrier" stroke-width="0" transform="translate(0,0), scale(1)">
       <path transform="translate(-3.2, -3.2), scale(1.2)" d="M16,31.753692126699857C18.275621105715054,31.608359088665438,19.171627882730217,28.564563255776267,20.96981550052522,27.162388373698832C22.346037735504105,26.089249936448258,24.02056702047819,
       25.541394565085962,25.37621974846371,24.442386181742002C26.875200145753666,23.22718409563112,28.689496919319186,22.149485606573446,29.377310591954405,20.346551693951067C30.06580975493249,18.54182093745207,29.128483939672968,16.55229417945213,29.12316241934649,
@@ -639,7 +638,6 @@
     </g>
     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
     <g id="SVGRepo_iconCarrier">
-      <style type="text/css"> .sketchy_een{fill:#111918;} </style>
       <path class="sketchy_een" d="M7.047,22.798c0.022-0.017,0.044-0.034,0.066-0.051c0.038-0.028,0.075-0.057,0.112-0.086 C7.166,22.707,7.107,22.752,7.047,22.798z M30.537,24.396c-0.212,0.125-0.471,0.158-0.709,0.093 c-0.102-0.028-0.185-0.079-0.264-0.135c-0.079,0.001-0.159,0.005-0.237-0.022c-0.24-0.083-0.487-0.137-0.723-0.23
       c-0.283-0.111-0.556-0.242-0.836-0.364c-0.242-0.109-0.495-0.204-0.725-0.337c-0.307-0.176-0.564-0.422-0.818-0.665 c-0.362-0.347-0.731-0.691-1.075-1.056c-0.194-0.204-0.382-0.412-0.56-0.63c-0.146-0.179-0.279-0.364-0.402-0.556 c-0.24,0.432-0.499,0.843-0.806,1.233c-0.394,0.505-0.889,0.919-1.414,1.285c-0.414,0.289-0.832,0.57-1.271,0.816
       c-0.871,0.489-1.873,0.79-2.856,0.95c-0.729,0.119-1.467,0.168-2.2,0.052c-0.452-0.071-0.899-0.156-1.343-0.269 c-0.497-0.129-0.998-0.275-1.451-0.525c-0.404-0.222-0.812-0.45-1.19-0.715c-0.432-0.301-0.804-0.632-1.139-1.038 c-0.343-0.416-0.63-0.865-0.861-1.35c-0.058-0.121-0.112-0.246-0.169-0.369c-0.271,0.287-0.54,0.577-0.822,0.854
@@ -669,7 +667,7 @@
     </g>
   </svg>
   <!--Pet exercise 1-->
-  <svg class="pet-exercise-1" width="800px" height="800px" viewBox="-51.2 -51.2 614.40 614.40" xmlns="http://www.w3.org/2000/svg" fill="#000000">
+  <svg v-if="icon === 'pet-exercise-1'" class="pet-exercise-1" width="800px" height="800px" viewBox="-51.2 -51.2 614.40 614.40" xmlns="http://www.w3.org/2000/svg" fill="#000000">
     <g id="SVGRepo_bgCarrier" stroke-width="0">
       <path transform="translate(-51.2, -51.2), scale(19.2)" d="M16,31.516037536456302C18.46199877517932,30.733329972680682,
       18.301949761990166,26.695233218771822,20.486213740532094,25.315718821811707C22.31431884891261,24.161143486164455,25.251581742315487,
@@ -700,7 +698,7 @@
     </g>
   </svg>
   <!--Pet exercise 2-->
-  <svg class="pet-exercise-2" fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-44.49 -44.49 533.83 533.83" xml:space="preserve">
+  <svg v-if="icon === 'pet-exercise-2'" class="pet-exercise-2" fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-44.49 -44.49 533.83 533.83" xml:space="preserve">
     <g id="SVGRepo_bgCarrier" stroke-width="0">
       <path transform="translate(-44.49, -44.49), scale(16.6821875)" d="M16,27.963754307892586C18.4953880419004,28.19475469775343,21.261594040867564,28.821885753548937,23.34665551730263,27.431619124710494C25.427728928318512,
       26.044011637738407,26.34120393644407,23.34549872329195,26.649029547937452,20.86324884206585C26.916327540660934,18.707806325535326,25.549955348973985,16.796626872283223,24.923403651374528,14.717008246376857C24.40436953647959,
@@ -726,7 +724,7 @@
     </g>
   </svg>
   <!--Pet exercise 3-->
-  <svg class="pet-exercise-3" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg v-if="icon === 'pet-exercise-3'" class="pet-exercise-3" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M65.5692 23.4761C41.0262 35.4408 19.1727 71.7985 12.9771 112.214C8.06591 144.251
     12.5135 175.029 23.9964 194.471C32.722 209.245 47.8533 222.44 66.0449 229.562C66.1858 228.746 66.3362 227.94 66.5157 227.158C66.7391
     226.184 68.2928 226.19 68.6118 227.137C68.8632 227.884 69.0844 228.7 69.3158 229.554C69.4344 229.992 69.5556 230.439 69.6849 230.892C74.3304
@@ -776,7 +774,7 @@
     227.137C70.1182 231.61 70.5437 238.604 78.5578 241.096C79.5591 241.408 79.5444 243.672 78.6327 244.188Z" stroke="#000000" stroke-width="5" stroke-linecap="round"/>
   </svg>
   <!--Pet exercise 4-->
-  <svg class="pet-exercise-4" fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-71.59 -71.59 564.31 564.31" xml:space="preserve">
+  <svg v-if="icon === 'pet-exercise-4'" class="pet-exercise-4" fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-71.59 -71.59 564.31 564.31" xml:space="preserve">
     <g id="SVGRepo_bgCarrier" stroke-width="0" transform="translate(10.528175000000005,10.528175000000005), scale(0.95)">
       <path transform="translate(-71.59, -71.59), scale(17.6346875)" d="M16,25.300787398591638C17.473629155948363,24.96721756854118,19.01053986160998,26.46522579935721,20.43447706366836,25.95999855803393C21.84294097936013,25.46026139434463,
       22.73708436888856,24.006309624733845,23.409721880265337,22.671743548113106C24.030844866695592,21.439386367493636,23.62327318902813,19.925636488773886,24.124019633309274,18.639653991445016C24.661240221369194,17.26000111254828,26.130952512711744,
@@ -808,7 +806,7 @@
     </g>
   </svg>
   <!--Pet exercise 5-->
-  <svg class="pet-exercise-5" width="800px" height="800px" viewBox="-0.05 0 20.096 20.096" xmlns="http://www.w3.org/2000/svg" fill="#000000">
+  <svg v-if="icon === 'pet-exercise-5'" class="pet-exercise-5" width="800px" height="800px" viewBox="-0.05 0 20.096 20.096" xmlns="http://www.w3.org/2000/svg" fill="#000000">
     <g id="SVGRepo_bgCarrier" stroke-width="0"/>
     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
     <g id="SVGRepo_iconCarrier">
@@ -821,7 +819,7 @@
     </g>
   </svg>
   <!--Pet exercise 6-->
-  <svg class="pet-exercise-6" fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-41.55 -41.55 498.61 498.61" xml:space="preserve">
+  <svg v-if="icon === 'pet-exercise-6'" class="pet-exercise-6" fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-41.55 -41.55 498.61 498.61" xml:space="preserve">
     <g id="SVGRepo_bgCarrier" stroke-width="0" transform="translate(68.55865499999999,68.55865499999999), scale(0.67)">
       <path transform="translate(-41.55, -41.55), scale(15.581562500000002)" d="M16,26.53414149209857C18.282969544608235,27.256567381987004,19.996039581767768,30.858075756543027,22.219540671772762,29.96931706559456C24.389594798791244,
       29.101921734022255,23.70078720443265,25.59770185846574,24.10246635687394,23.295493476516484C24.37092348805832,21.756841908840055,24.163479649940875,20.223503935757755,24.19241299795332,18.661876342709505C24.214450387379042,
@@ -854,7 +852,7 @@
     </g>
   </svg>
   <!--Pet medicine 1-->
-  <svg class="pet-medicine-1" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-medicine-1'" class="pet-medicine-1" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 512 512" xml:space="preserve">
     <g>
       <path style="fill:#FE9901;" d="M189.9,161.874c-0.061,0-0.302,0-0.363,0c-27.681,0-55.241,57.982-37.431,66.294
@@ -934,7 +932,7 @@
       c23.648,0,42.888-19.24,42.888-42.889S440.858,130.377,417.209,130.377z"/>
   </svg>
   <!--Pet medicine 2-->
-  <svg class="pet-medicine-2" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-medicine-2'" class="pet-medicine-2" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 512 512" xml:space="preserve">
     <path style="fill:#FE9901;" d="M373.266,63.752H138.733c-6.995,0-12.665-5.67-12.665-12.665V20.64
       c0-6.995,5.67-12.665,12.665-12.665h234.533c6.995,0,12.665,5.67,12.665,12.665v30.446
@@ -1010,7 +1008,7 @@
       S234.715,41.222,239.12,41.222z"/>
   </svg>
   <!--Pet medicine 3-->
-  <svg class="pet-medicine-3" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-medicine-3'" class="pet-medicine-3" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 512 512" xml:space="preserve">
     <path style="fill:#74D6D0;" d="M260.243,160.435l-3.635,0.009c-16.601,0.042-30.091-13.381-30.132-29.982l-0.081-32.427
       L96.73,98.361l0.081,32.427c0.042,16.599-13.38,30.091-29.982,30.132l-3.077,0.008c-33.952,0.085-61.407,27.678-61.323,61.63
@@ -1032,7 +1030,7 @@
       c0,16.601,13.457,30.057,30.057,30.057h64.276V0L162.041,0z"/>
   </svg>
   <!--Pet medicine 4-->
-  <svg class="pet-medicine-4" fill="#000000" width="800px" height="800px" viewBox="0 0 50 50" version="1.2" baseProfile="tiny" xmlns="http://www.w3.org/2000/svg" overflow="inherit">
+  <svg v-if="icon === 'pet-medicine-4'" class="pet-medicine-4" fill="#000000" width="800px" height="800px" viewBox="0 0 50 50" version="1.2" baseProfile="tiny" xmlns="http://www.w3.org/2000/svg" overflow="inherit">
     <path d="M18.48 18.875c2.33-.396 4.058-2.518 4.321-5.053.267-2.578.869-12.938-3.02-12.279-10.088 1.711-9.38 18.702-1.301 17.332zm13.273 0c8.077 1.37 8.785-15.621-1.303-17.333-3.888-.659-3.287
     9.701-3.021 12.279.264 2.536 1.994 4.658 4.324 5.054zm-17.417 8.005c0-1.348-.481-2.57-1.256-3.459-1.275-1.666-5.328-5.035-6.323-4.172-2.077 1.806-2.01 6.251-.759 9.481.643 1.796 2.196 3.059
     4.011 3.059 2.389 0 4.327-2.198 4.327-4.909zm29.137-7.631c-.993-.863-5.046 2.506-6.321 4.172-.775.889-1.257 2.111-1.257 3.459 0 2.711 1.94 4.909 4.327 4.909 1.816 0 3.37-1.263 4.013-3.059
@@ -1041,7 +1039,7 @@
     4.474h-3.811l.005 4h-4.156l.006-4h-4.044v-4h4.045l-.006-4h4.156l-.005 4h3.81v4z"/>
   </svg>
   <!--Pet medicine 5-->
-  <svg class="pet-medicine-5" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-medicine-5'" class="pet-medicine-5" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 512.001 512.001" xml:space="preserve">
     <circle style="fill:#A2D8F4;" cx="384.262" cy="376.416" r="119.571"/>
     <path style="fill:#88C7E2;" d="M384.266,256.837c-4.015,0-7.981,0.202-11.893,0.588c60.456,5.97,107.683,56.962,107.683,118.988
@@ -1217,7 +1215,7 @@
       l40.175-40.175c18.189-18.188,42.371-28.205,68.093-28.205S202.07,164.421,220.259,182.608z"/>
   </svg>
   <!--Pet medicine 6-->
-  <svg class="pet-medicine-6" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-medicine-6'" class="pet-medicine-6" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 512 512" xml:space="preserve">
     <path style="fill:#37CC8F;" d="M466.002,175.695H336.307V45.998c0-21.004-17.027-38.029-38.029-38.029h-84.552
       c-21.004,0-38.029,17.027-38.029,38.029v129.697H45.998c-21.004,0-38.029,17.027-38.029,38.029v84.552
@@ -1371,12 +1369,12 @@
       c1.639,0,3.125,0.133,4.416,0.393C333.311,309.045,338.642,317.075,336.984,325.285z"/>
   </svg>
   <!--Pet potty 1-->
-  <svg class="pet-potty-1" fill="#000000" width="800px" height="800px" viewBox="-3 -2 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin">
+  <svg v-if="icon === 'pet-potty-1'" class="pet-potty-1" fill="#000000" width="800px" height="800px" viewBox="-3 -2 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin">
     <path d='M6 2V1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h4a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-.133l-.68 10.2a3 3 0 0 1-2.993 2.8H5.826a3 3 0 0 1-2.993-2.796L2.137 7H2a2 2 0 0 1-2-2V4a2 2 0 0
     1 2-2h4zm10 2H2v1h14V4zM4.141 7l.687 10.068a1 1 0 0 0 .998.932h6.368a1 1 0 0 0 .998-.934L13.862 7h-9.72zM7 8a1 1 0 0 1 1 1v7a1 1 0 0 1-2 0V9a1 1 0 0 1 1-1zm4 0a1 1 0 0 1 1 1v7a1 1 0 0 1-2 0V9a1 1 0 0 1 1-1z'/>
   </svg>
   <!--Pet potty 2-->
-  <svg class="pet-potty-2" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg v-if="icon === 'pet-potty-2'" class="pet-potty-2" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M78.025 62.5048C51.1962 71.2366 31.0627 91.3112 31.0021 119.518C30.9762
     131.565 34.246 140.83 40.1204 147.722C49.65 121.393 94.0445 92.8777 140.389 76.8879C139.665 75.9067 138.888 74.9462 138.057
     74.0074C127.868 62.4923 102.671 54.4834 78.025 62.5048ZM147.789 95.3208C102.86 110.167 65.3194 138.593 56.1278 158.883C63.133
@@ -1426,7 +1424,7 @@
     243.432C133.146 244.006 133.256 246.014 132.345 246.532Z" stroke="#000000" stroke-width="5" stroke-linecap="round"/>
   </svg>
   <!--Pet potty 3-->
-  <svg class="pet-potty-3" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg v-if="icon === 'pet-potty-3'" class="pet-potty-3" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M101.642 36.2968C64.2347 32.8015 25.2498 60.5907 20.5038
     97.7968C19.5014 105.654 19.9918 115.923 22.3371 127.264L66.5912 109.559C64.5078 99.6003 65.5662 95.097
     72.2135 89.8048C72.4552 89.6124 72.6014 89.3192 72.6014 89.0102V78.2778C72.6014 77.498 73.4543 77.0183
@@ -1465,7 +1463,7 @@
     136.71 81.5057M66.5911 109.559L90.632 99.9408M136.71 81.5057L108.162 92.9275M90.632 92.5V99.9408M90.632 99.9408L108.162 92.9275M108.162 86.5V92.9275" stroke="#000000" stroke-width="5" stroke-linecap="round"/>
   </svg>
   <!--Pet potty 4-->
-  <svg class="pet-potty-4" fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  <svg v-if="icon === 'pet-potty-4'" class="pet-potty-4" fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 436.785 436.785" xml:space="preserve">
     <g>
       <path d="M434.562,76.253c-1.656-1.895-4.029-3.01-6.544-3.075l-44.219-1.146c-6.147-10.159-17.319-16.65-29.45-16.65
@@ -1488,7 +1486,7 @@
     </g>
   </svg>
   <!--Pet potty 5-->
-  <svg class="pet-potty-5" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg v-if="icon === 'pet-potty-5'" class="pet-potty-5" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M250.392 22.3116C219.749 19.9608 189.945 30.7453 181.459 60.3116C176.063
     79.1108 180.81 95.5388 192.035 109.522C192.099 109.305 192.235 109.11 192.424 108.978C219.256 90.1826 235.324 84.8736 264.743
     83.8333C265.127 83.8198 265.494 84.0333 265.671 84.3738C274.503 101.353 277.629 113.185 277.99 130.612C278.782 130.195 279.573
@@ -1526,7 +1524,7 @@
     136.812C139 142.173 135.84 145.158 131.508 148.312C126.013 152.312 103.035 151.812 99.0391 149.812C93.3158 146.947 89.0488 143.217 89.0488 136.812Z" stroke="#000000" stroke-width="5" stroke-linecap="round"/>
   </svg>
   <!--Pet potty 6-->
-  <svg class="pet-potty-6" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg v-if="icon === 'pet-potty-6'" class="pet-potty-6" width="800px" height="800px" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M144.577 76.5002C132.494 67.4696 111.298 62.49 90.4969 69.5974C63.8886
     78.6891 43.9206 99.5912 43.8605 128.961C43.851 133.581 44.285 137.808 45.1281 141.663C61.1842 116.364 102.586 90.7698
     144.577 76.5002ZM56.5484 162.199C67.5221 139.505 109.273 107.955 157.363 94.1344C161.507 105.405 160.774 118.439 155.989
@@ -1567,4 +1565,33 @@
     224.554C132.446 223.586 133.879 223.524 134.187 224.487C135.699 229.227 137.653 234.427 141.395 236.9C142.249 237.464 142.324 239.432 141.424 239.962Z" stroke="#000000" stroke-width="5" stroke-linecap="round"/>
   </svg>
 </template>
+
+<style scoped>
+.fandom_vijf { fill: #5096b4; }
+.fandom_zes { fill: #8bbcd5; }
+.fandom_acht { fill: #368fa1; }
+.fandom_negen,
+.fandom_tien,
+.st5,
+.st6 { fill: #ff8080; }
+.fandom_veertien { fill: #fdfdfc; }
+.fandom_zestien { fill: #4d4d4d; }
+.fandom_negentien { fill: #b6aaaa; }
+.st0 { fill: #ff786e; }
+.st1 { fill: #bd5151; }
+.st2 { fill: #ffc865; }
+.st3 { fill: #be9148; }
+.st4 { fill: #644638; }
+.st7 { fill: #aa9991; }
+.st8 { fill: #fffafa; }
+.st9 { fill: #508d9b; }
+.st10 { fill: #4b322a; }
+.st11 { fill: #3a3a3a; }
+.cls-1 { fill: #ff6368; }
+.cls-2 { fill: #9ad7d2; }
+.cls-3 { fill: #d34a5b; }
+.cls-4 { fill: #354251; }
+.cls-5 { fill: #74c1b9; }
+.sketchy_een { fill: #111918; }
+</style>
 
