@@ -194,20 +194,20 @@
 
   #get-started-link {
     position: relative;
+    display: inline-block;
     text-decoration: none;
     color: #1a1a1a;
-    transition: 0.3s;
+    transition: color 0.3s ease-in-out;
   }
 
   .dark-mode #get-started-link {
     color: #f2f2f2;
-    transition: 0.3s;
   }
 
-  #get-started-link::before {
+  #get-started-link::after {
     content: "";
     position: absolute;
-    bottom: -2px;
+    bottom: -3px;
     left: 0;
     width: 100%;
     height: 2px;
@@ -217,7 +217,7 @@
     transition: transform 0.3s ease-in-out;
   }
 
-  #get-started-link:hover::before {
+  #get-started-link:hover::after {
     transform: scaleX(1);
   }
 
@@ -450,7 +450,6 @@
       transition: none;
     }
   }
-
 
   h2 {
     font-size: 2.5rem;

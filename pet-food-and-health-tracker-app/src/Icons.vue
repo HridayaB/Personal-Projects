@@ -105,7 +105,7 @@
     1.61-1.25a1.14 1.14 0 0 0 -1.71-1.16zm.21 1.75a.59.59 0 0 1 0-1.12.53.53 0 0 1 .76.53c-.11.41-.42.74-.86.58z" fill="#1d1d1b"/>
   </svg>
   <!--Home page 1-->
-  <svg v-if="icon === 'home-page-1'" class= "home-page-1" width="200px" height="200px" viewBox="0 0 48 48" enable-background="new 0 0 48 48" id="_x3C_Layer_x3E_" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000" style="width: 200px; height: 200px; color: rgb(0, 0, 0);" stroke="#000000" stroke-width="0.00048000000000000007">
+  <svg v-if="icon === 'home-page-1'" class="home-page-1" viewBox="0 0 48 48" enable-background="new 0 0 48 48" id="_x3C_Layer_x3E_" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000" style="color: rgb(0, 0, 0);" stroke="#000000" stroke-width="0.00048000000000000007">
     <g id="SVGRepo_bgCarrier" stroke-width="0"/>
     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.4800000000000001"/>
     <g id="SVGRepo_iconCarrier">
@@ -148,7 +148,7 @@
     </g>
   </svg>
   <!--Home page 2-->
-  <svg v-if="icon === 'home-page-2'" class="home-page-2" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width="200px" height="200px" fill="#000000" style="width: 200px; height: 200px; color: rgb(0, 0, 0);">
+  <svg v-if="icon === 'home-page-2'" class="home-page-2" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="#000000" style="color: rgb(0, 0, 0);">
     <g id="SVGRepo_bgCarrier" stroke-width="0"/>
     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
     <g id="SVGRepo_iconCarrier">
