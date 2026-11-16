@@ -108,23 +108,23 @@
   }
   const notSure = () => step.value = 'food'
   const submitPetFoodFrequency = () => {
-    if (!selectedPetFoodFrequency.value) return
+    if (selectedPetFoodFrequency.value === '') return
     step.value = 'treat'
   }
   const submitPetTreatFrequency = () => {
-    if (!selectedPetTreatFrequency.value) return
+    if (selectedPetTreatFrequency.value === '') return
     step.value = 'exercise'
   }
   const submitPetExerciseFrequency = () => {
-    if (!selectedPetExerciseFrequency.value) return
+    if (selectedPetExerciseFrequency.value === '') return
     step.value = Number(selectedPetExerciseFrequency.value) > 0 ? 'exerciseDuration' : 'medicine'
   }
   const submitPetExerciseDuration = () => {
-    if (!selectedPetExerciseDuration.value) return
+    if (selectedPetExerciseDuration.value === '') return
     step.value = 'exerciseTypes'
   }
   const submitPetExerciseTypes = () => {
-    if (!selectedPetExerciseTypes.value) return
+    if (selectedPetExerciseTypes.value === '') return
     step.value = Number(selectedPetExerciseTypes.value) > 0 ? 'exerciseLabels' : 'medicine'
   }
   const submitPetExerciseLabels = () => {
@@ -184,7 +184,7 @@
     <label for="dark-mode-toggle">
       <Icons :dark-mode="isDarkMode" />
     </label>
-    <button @click="openModal">Choose your pet</button>
+    <button @click="openModal" id="choose-pet-button">Choose your pet</button>
     <div v-if="isOpen" class="modal-overlay" @click.self="isOpen = false">
       <div class="modal-content">
         <template v-if="step === 'numPets'">
@@ -195,7 +195,7 @@
             <button @click="isOpen = false">Cancel</button>
           </div>
         </template>
-        <template v-if="step === 'pet'">
+        <template v-else-if="step === 'pet'">
           <h3>What type of pet do you have?</h3>
           <select v-model="selectedPet">
             <option value="" disabled>Select your pet</option>
@@ -242,7 +242,7 @@
           </ul>
           <p>These are general recommendations only, not medical advice. Always consult your veterinarian for personalized guidance.</p>
           <div class="actions">
-            <button :disabled="!selectedPetFoodFrequency" @click="submitPetFoodFrequency">Submit</button>
+            <button :disabled="selectedPetFoodFrequency === ''" @click="submitPetFoodFrequency">Submit</button>
             <button @click="isOpen = false">Cancel</button>
           </div>
         </template>
@@ -257,7 +257,7 @@
           </ul>
           <p>These are general recommendations only, not medical advice. Always consult your veterinarian for personalized guidance.</p>
           <div class="actions">
-            <button :disabled="!selectedPetTreatFrequency" @click="submitPetTreatFrequency">Submit</button>
+            <button :disabled="selectedPetTreatFrequency === ''" @click="submitPetTreatFrequency">Submit</button>
             <button @click="isOpen = false">Cancel</button>
           </div>
         </template>
@@ -265,7 +265,7 @@
           <h3>{{ exerciseFrequencyLabel }}</h3>
           <input type="number" min="0" v-model="selectedPetExerciseFrequency">
           <div class="actions">
-            <button :disabled="!selectedPetExerciseFrequency" @click="submitPetExerciseFrequency">Submit</button>
+            <button :disabled="selectedPetExerciseFrequency === ''" @click="submitPetExerciseFrequency">Submit</button>
             <button @click="isOpen = false">Cancel</button>
           </div>
         </template>
@@ -273,7 +273,7 @@
           <h3>How long does your {{ selectedPet.toLowerCase() }} exercise each session?</h3>
           <input type="number" min="0" v-model="selectedPetExerciseDuration" placeholder="Enter in minutes">
           <div class="actions">
-            <button :disabled="!selectedPetExerciseDuration" @click="submitPetExerciseDuration">Submit</button>
+            <button :disabled="selectedPetExerciseDuration === ''" @click="submitPetExerciseDuration">Submit</button>
             <button @click="isOpen = false">Cancel</button>
           </div>
         </template>
@@ -281,7 +281,7 @@
           <h3>How many types of exercise does your {{ selectedPet.toLowerCase() }} do?</h3>
           <input type="number" min="0" v-model="selectedPetExerciseTypes">
           <div class="actions">
-            <button :disabled="!selectedPetExerciseTypes" @click="submitPetExerciseTypes">Submit</button>
+            <button :disabled="selectedPetExerciseTypes === ''" @click="submitPetExerciseTypes">Submit</button>
             <button @click="isOpen = false">Cancel</button>
           </div>
         </template>
@@ -338,26 +338,84 @@
 
     <div v-if="showTrackerOptions === true" class="show-tracker-options">
       <p> That is all we need from you. You can now start tracking your pet's food and health using one of the following tracker.</p>
-      <div class="food-tracker-container">
+      <div class="home-page-container">
         <router-link to="/" id="home-page-link">
           <span>Home</span>
+          <Icons icon="home-page-1" />
         </router-link>
+        <div class="home-page-icons">
+          <Icons icon="home-page-2" />
+          <Icons icon="home-page-3" />
+          <Icons icon="home-page-4" />
+          <Icons icon="home-page-5" />
+          <Icons icon="home-page-6" />
+        </div>
       </div>
-      <p>
-        <router-link to="/daily-food-tracker">Daily Food Tracker</router-link>
-      </p>
-      <p>
-        <router-link to='/daily-treat-tracker'>Daily Treat Tracker</router-link>
-      </p>
-      <p>
-        <router-link to='/daily-exercise-tracker'>Daily Exercise Tracker</router-link>
-      </p>
-      <p>
-        <router-link to='/daily-medicine-tracker'>Daily Medicine Tracker</router-link>
-      </p>
-      <p>
-        <router-link to='/daily-potty-tracker'>Daily Potty Tracker</router-link>
-      </p>
+      <div class="food-tracker-container">
+        <router-link to="/daily-food-tracker" id="daily-food-tracker-link">
+          <span>Daily Food Tracker</span>
+          <Icons icon="pet-food-1" />
+        </router-link>
+        <div class="pet-food-icons">
+          <Icons icon="pet-food-2" />
+          <Icons icon="pet-food-3" />
+          <Icons icon="pet-food-4" />
+          <Icons icon="pet-food-5" />
+          <Icons icon="pet-food-6" />
+        </div>
+      </div>
+      <div class="treat-tracker-container">
+        <router-link to='/daily-treat-tracker' id="daily-treat-tracker-link">
+          <span>Daily Treat Tracker</span>
+          <Icons icon="pet-treat-1" />
+        </router-link>
+        <div class="pet-treat-icons">
+          <Icons icon="pet-treat-2" />
+          <Icons icon="pet-treat-3" />
+          <Icons icon="pet-treat-4" />
+          <Icons icon="pet-treat-5" />
+          <Icons icon="pet-treat-6" />
+        </div>
+      </div>
+      <div class="exercise-tracker-container">
+        <router-link to='/daily-exercise-tracker' id="daily-exercise-tracker-link">
+          <span>Daily Exercise Tracker</span>
+          <Icons icon="pet-exercise-1" />
+        </router-link>
+        <div class="pet-exercise-icons">
+          <Icons icon="pet-exercise-2" />
+          <Icons icon="pet-exercise-3" />
+          <Icons icon="pet-exercise-4" />
+          <Icons icon="pet-exercise-5" />
+          <Icons icon="pet-exercise-6" />
+        </div>
+      </div>
+      <div class="medicine-tracker-container">
+        <router-link to='/daily-medicine-tracker' id="daily-medicine-tracker-link">
+          <span>Daily Medicine Tracker</span>
+          <Icons icon="pet-medicine-1" />
+        </router-link>
+        <div class="pet-medicine-icons">
+          <Icons icon="pet-medicine-2" />
+          <Icons icon="pet-medicine-3" />
+          <Icons icon="pet-medicine-4" />
+          <Icons icon="pet-medicine-5" />
+          <Icons icon="pet-medicine-6" />
+        </div>
+      </div>
+      <div class="potty-tracker-container">
+        <router-link to='/daily-potty-tracker' id="daily-potty-tracker-link">
+          <span>Daily Potty Tracker</span>
+          <Icons icon="pet-potty-1" />
+        </router-link>
+        <div class="pet-potty-icons">
+          <Icons icon="pet-potty-2" />
+          <Icons icon="pet-potty-3" />
+          <Icons icon="pet-potty-4" />
+          <Icons icon="pet-potty-5" />
+          <Icons icon="pet-potty-6" />
+        </div>
+      </div>
     </div>
   </main>
 </template>
@@ -412,7 +470,7 @@
     transition: 0.3s;
   }
 
-  input {
+  #dark-mode-toggle {
     width: 0;
     height: 0;
     visibility: hidden;
@@ -420,11 +478,11 @@
     position: absolute;
   }
 
-  input:checked + label {
+  #dark-mode-toggle:checked + label {
     background: #242424
   }
 
-  input:checked + label:after {
+  #dark-mode-toggle:checked + label:after {
     left: 69px;
     transform: translateX(-100%);
     background: linear-gradient(180deg, #777, #3a3a3a);
@@ -465,6 +523,256 @@
     fill: var(--moon-icon-color);
   }
 
+  .tracker-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+
+  #home-page-link,
+  #daily-food-tracker-link,
+  #daily-treat-tracker-link,
+  #daily-exercise-tracker-link,
+  #daily-medicine-tracker-link,
+  #daily-potty-tracker-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s,
+      background-color 0.3s,
+      border-color 0.3s,
+      box-shadow 0.2s;
+  }
+
+  #home-page-link:hover,
+  #daily-food-tracker-link:hover,
+  #daily-treat-tracker-link:hover,
+  #daily-exercise-tracker-link:hover,
+  #daily-medicine-tracker-link:hover,
+  #daily-potty-tracker-link:hover {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  .dark-mode #home-page-link,
+  .dark-mode #daily-food-tracker-link,
+  .dark-mode #daily-treat-tracker-link,
+  .dark-mode #daily-exercise-tracker-link,
+  .dark-mode #daily-medicine-tracker-link,
+  .dark-mode #daily-potty-tracker-link {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #4a4a4a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark-mode #home-page-link:hover,
+  .dark-mode #daily-food-tracker-link:hover,
+  .dark-mode #daily-treat-tracker-link:hover,
+  .dark-mode #daily-exercise-tracker-link:hover,
+  .dark-mode #daily-medicine-tracker-link:hover,
+  .dark-mode #daily-potty-tracker-link:hover {
+    border-color: #993638;
+    background-color: #3d3d3d;
+  }
+
+  #home-page-link :deep(svg.home-page-1),
+  #daily-food-tracker-link :deep(svg.pet-food-1),
+  #daily-treat-tracker-link :deep(svg.pet-treat-1),
+  #daily-exercise-tracker-link :deep(svg.pet-exercise-1),
+  #daily-medicine-tracker-link :deep(svg.pet-medicine-1),
+  #daily-potty-tracker-link :deep(svg.pet-potty-1) {
+    width: 30px;
+    height: 30px;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  #home-page-link:hover :deep(svg.home-page-1),
+  #daily-food-tracker-link:hover :deep(svg.pet-food-1),
+  #daily-treat-tracker-link:hover :deep(svg.pet-treat-1),
+  #daily-exercise-tracker-link:hover :deep(svg.pet-exercise-1),
+  #daily-medicine-tracker-link:hover :deep(svg.pet-medicine-1),
+  #daily-potty-tracker-link:hover :deep(svg.pet-potty-1) {
+    transform: scale(1.1);
+  }
+
+  .home-page-container,
+  .food-tracker-container,
+  .treat-tracker-container,
+  .exercise-tracker-container,
+  .medicine-tracker-container,
+  .potty-tracker-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .home-page-icons,
+  .pet-food-icons,
+  .pet-treat-icons,
+  .pet-exercise-icons,
+  .pet-medicine-icons,
+  .pet-potty-icons {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .home-page-icons :deep(svg),
+  .pet-food-icons :deep(svg),
+  .pet-treat-icons :deep(svg),
+  .pet-exercise-icons :deep(svg),
+  .pet-medicine-icons :deep(svg),
+  .pet-potty-icons :deep(svg) {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    left: 50%;
+    top: 0;
+    opacity: 0;
+    transform: translate(-50%, 12px) scale(0) rotate(0deg);
+    transition: left 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.45s ease, opacity 0.25s ease, transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .home-page-icons :deep(svg.home-page-2),
+  .pet-food-icons :deep(svg.pet-food-2),
+  .pet-treat-icons :deep(svg.pet-treat-2),
+  .pet-exercise-icons :deep(svg.pet-exercise-2),
+  .pet-medicine-icons :deep(svg.pet-medicine-2),
+  .pet-potty-icons :deep(svg.pet-potty-2) {
+    --food-left: 10%;
+    --food-rotation: -15deg;
+  }
+
+  .home-page-container:hover .home-page-icons :deep(svg.home-page-2),
+  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-2),
+  .treat-tracker-container:hover .pet-treat-icons :deep(svg.pet-treat-2),
+  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-2),
+  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-2),
+  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-2) {
+    left: 10%;
+    top: -40px;
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1) rotate(-15deg);
+    transition-delay: 0s;
+  }
+
+  .home-page-icons :deep(svg.home-page-3),
+  .pet-food-icons :deep(svg.pet-food-3),
+  .pet-treat-icons :deep(svg.pet-treat-3),
+  .pet-exercise-icons :deep(svg.pet-exercise-3),
+  .pet-medicine-icons :deep(svg.pet-medicine-3),
+  .pet-potty-icons :deep(svg.pet-potty-3) {
+    --food-left: 30%;
+    --food-rotation: -8deg;
+  }
+
+  .home-page-container:hover .home-page-icons :deep(svg.home-page-3),
+  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-3),
+  .treat-tracker-container:hover .pet-treat-icons :deep(svg.pet-treat-3),
+  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-3),
+  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-3),
+  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-3) {
+    left: 30%;
+    top: -40px;
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1) rotate(-8deg);
+    transition-delay: 0.07s;
+  }
+
+  .home-page-icons :deep(svg.home-page-4),
+  .pet-food-icons :deep(svg.pet-food-4),
+  .pet-treat-icons :deep(svg.pet-treat-4),
+  .pet-exercise-icons :deep(svg.pet-exercise-4),
+  .pet-medicine-icons :deep(svg.pet-medicine-4),
+  .pet-potty-icons :deep(svg.pet-potty-4) {
+    --food-left: 50%;
+    --food-rotation: 0deg;
+  }
+
+  .home-page-container:hover .home-page-icons :deep(svg.home-page-4),
+  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-4),
+  .treat-tracker-container:hover .pet-treat-icons :deep(svg.pet-treat-4),
+  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-4),
+  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-4),
+  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-4) {
+    left: 50%;
+    top: -40px;
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1) rotate(5deg);
+    transition-delay: 0.14s;
+  }
+
+  .home-page-icons :deep(svg.home-page-5),
+  .pet-food-icons :deep(svg.pet-food-5),
+  .pet-treat-icons :deep(svg.pet-treat-5),
+  .pet-exercise-icons :deep(svg.pet-exercise-5),
+  .pet-medicine-icons :deep(svg.pet-medicine-5),
+  .pet-potty-icons :deep(svg.pet-potty-5) {
+    --food-left: 70%;
+    --food-rotation: 8deg;
+  }
+
+  .home-page-container:hover .home-page-icons :deep(svg.home-page-5),
+  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-5),
+  .treat-tracker-container:hover .pet-treat-icons :deep(svg.pet-treat-5),
+  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-5),
+  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-5),
+  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-5) {
+    left: 70%;
+    top: -40px;
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1) rotate(8deg);
+    transition-delay: 0.21s;
+  }
+
+  .home-page-icons :deep(svg.home-page-6),
+  .pet-food-icons :deep(svg.pet-food-6),
+  .pet-treat-icons :deep(svg.pet-treat-6),
+  .pet-exercise-icons :deep(svg.pet-exercise-6),
+  .pet-medicine-icons :deep(svg.pet-medicine-6),
+  .pet-potty-icons :deep(svg.pet-potty-6) {
+    --food-left: 90%;
+    --food-rotation: 15deg;
+  }
+
+  .home-page-container:hover .home-page-icons :deep(svg.home-page-6),
+  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-6),
+  .treat-tracker-container:hover .pet-treat-icons :deep(svg.pet-treat-6),
+  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-6),
+  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-6),
+  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-6) {
+    left: 90%;
+    top: -40px;
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1) rotate(15deg);
+    transition-delay: 0.28s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-page-icons :deep(svg),
+    .pet-food-icons :deep(svg),
+    .pet-treat-icons :deep(svg),
+    .pet-exercise-icons :deep(svg),
+    .pet-medicine-icons :deep(svg),
+    .pet-potty-icons :deep(svg) {
+      transition: none;
+    }
+  }
+
   h2 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
@@ -474,5 +782,48 @@
     font-size: 1.2rem;
     max-width: 600px;
     margin: 0 auto;
+  }
+
+  #choose-pet-button {
+    padding: 12px 24px;
+    background-color: #FFF;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+  }
+
+  #choose-pet-button:hover {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  #choose-pet-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  #choose-pet-button:focus-visible {
+    outline: 3px solid rgba(153, 54, 56, 0.35);
+    outline-offset: 3px;
+  }
+
+  .dark-mode #choose-pet-button {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #4a4a4a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark-mode #choose-pet-button:hover {
+    background-color: #3d3d3d;
+    border-color: #993638;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   }
 </style>

@@ -120,4 +120,16 @@ test.describe('HomeView CSS & Layout', () => {
       expect(delay).toBe(expectedDelays[i])
     }
   })
+
+  test('get started link shows underline on hover', async ({ page }) => {
+    const link = page.locator('#get-started-link')
+    await expect(link).toBeVisible()
+    await link.hover()
+    await expect(link).toHaveCSS('text-decoration-line', 'none')
+    const transform = await link.evaluate((element) => {
+      const pseudo = element.ownerDocument.defaultView!.getComputedStyle(element, '::after')
+      return pseudo.transform
+    })
+    expect(transform).not.toBe('matrix(0, 0, 0, 1, 0, 0)')
+  })
 })
