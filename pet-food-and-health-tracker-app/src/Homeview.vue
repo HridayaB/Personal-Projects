@@ -17,7 +17,7 @@
     </label>
     <p>
       Welcome to the Pet Food and Health Tracker! This app helps you keep track of your pet's daily food and treat intake, as well other health-related information.
-      If you are new here, then let's <router-link to="/get-started" id="get-started-link">get started</router-link>!
+      If you are new here, then let's <router-link to="/get-started" id="get-started-link">get started. Click here</router-link>!
     </p>
     <div class="tracker-links">
       <div class="food-tracker-container">
