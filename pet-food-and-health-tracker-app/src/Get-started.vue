@@ -338,9 +338,11 @@
 
     <div v-if="showTrackerOptions === true" class="show-tracker-options">
       <p> That is all we need from you. You can now start tracking your pet's food and health using one of the following tracker.</p>
-      <p>
-        <router-link to="/">Home</router-link>
-      </p>
+      <div class="food-tracker-container">
+        <router-link to="/" id="home-page-link">
+          <span>Home</span>
+        </router-link>
+      </div>
       <p>
         <router-link to="/daily-food-tracker">Daily Food Tracker</router-link>
       </p>
