@@ -824,6 +824,172 @@
   .dark-mode #choose-pet-button:hover {
     background-color: #3d3d3d;
     border-color: #993638;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .modal-content {
+    width: 100%;
+    max-width: 600px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 30px;
+    background-color: #FFF;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    animation: modal-appear 0.25s ease-out;
+  }
+
+  .modal-content h3 {
+    margin: 0 0 20px;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+
+  .modal-context p {
+    margin: 15px auto;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .modal-content ul {
+    text-align: left;
+    margin: 15px 0;
+    padding-left: 25px;
+  }
+
+  .modal-content li {
+    margin-bottom: 8px;
+  }
+
+  .modal-content input,
+  .modal-content select {
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    margin: 10px 0;
+    background-color: #FFF;
+    color: #1a1a1a;
+    border: 1px splid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  .modal-content input:focus,
+  .modal-content select:focus {
+    outline: none;
+    border-color: #993638;
+    box-shadow: 0 0 0 3px rgba(153, 54, 56, 0.15);
+  }
+
+  .modal-content button {
+    padding: 10px 22px;
+    margin: 8px;
+    background-color: #FFF;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+  }
+
+  .modal-content button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .modal-content button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .modal-content button:focus-visible {
+    outline: 3px solid rgba(153, 54, 56, 0.35);
+    outline-offset: 3px;
+  }
+
+  .modal-content .actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .dark-mode .modal-content {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #4a4a4a;
+  }
+
+  .dark-mode .modal-content input,
+  .dark-mode .modal-content select {
+    background-color: #242424;
+    color: #f2f2f2;
+    border-color: #555555;
+  }
+
+  .dark-mode .modal-content button {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #555555;
+  }
+
+  .dark-mode .modal-content button:hover:not(:disabled) {
+    background-color: #3d3d3d;
+    border-color: #993638;
+  }
+
+  @keyframes modal-appear {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .modal-content {
+      padding: 22px 16px;
+    }
+
+    .modal-content h3 {
+      font-size: 1.2rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modal-content {
+      animation: none;
+    }
+
+    .modal-content button {
+      transition: none;
+    }
   }
 </style>

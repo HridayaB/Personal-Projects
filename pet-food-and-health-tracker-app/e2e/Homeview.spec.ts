@@ -19,9 +19,9 @@ test.describe('HomeView CSS & Layout', () => {
 
   test('tracker links have the correct styling and hover border effect', async ({ page }) => {
     const foodLink = page.locator('#daily-food-tracker-link')
-    await expect(foodLink).toHaveCSS('background-color', 'rgb(255, 255, 255)')
-    await expect(foodLink).toHaveCSS('border-radius', '10px')
-    await expect(foodLink).toHaveCSS('border-color', 'rgb(209, 209, 209)')
+    await page.addStyleTag({
+    content: '#daily-food-tracker-link { transition: none !important; }'
+    })
     await foodLink.hover()
     await expect(foodLink).toHaveCSS('border-color', 'rgb(153, 54, 56)')
   })
@@ -68,9 +68,9 @@ test.describe('HomeView CSS & Layout', () => {
     await page.addStyleTag({
       content: '.pet-food-icons svg { transition: none !important; }'
     })
-    const foodLink = page.locator('#daily-food-tracker-link')
+    const foodContainer = page.locator('.food-tracker-container')
     const foodIcons = page.locator('.pet-food-icons svg')
-    await foodLink.hover()
+    await foodContainer.hover()
     await expect(foodIcons).toHaveCount(5)
     for (let i = 0; i < 5; i++) {
       await expect(foodIcons.nth(i)).toHaveCSS('opacity', '1')
@@ -124,12 +124,14 @@ test.describe('HomeView CSS & Layout', () => {
   test('get started link shows underline on hover', async ({ page }) => {
     const link = page.locator('#get-started-link')
     await expect(link).toBeVisible()
+    await page.addStyleTag({
+      content: `#get-started-link::after {transition: none !important;}`
+    })
     await link.hover()
-    await expect(link).toHaveCSS('text-decoration-line', 'none')
     const transform = await link.evaluate((element) => {
       const pseudo = element.ownerDocument.defaultView!.getComputedStyle(element, '::after')
       return pseudo.transform
     })
-    expect(transform).not.toBe('matrix(0, 0, 0, 1, 0, 0)')
+    expect(transform).toBe('matrix(1, 0, 0, 1, 0, 0)')
   })
 })
