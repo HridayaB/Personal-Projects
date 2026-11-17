@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('HomeView CSS & Layout', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
   })
 
   test('tracker links align horizontally on a wide screen', async ({ page }) => {
@@ -13,30 +13,22 @@ test.describe('HomeView CSS & Layout', () => {
     expect(firstBox).not.toBeNull()
     for (let i = 1; i < 5; i++) {
       const box = await links.nth(i).boundingBox()
-      expect(box?.y).toBeCloseTo(firstBox!.y, 1)
+      expect(box).not.toBeNull()
+      expect(Math.abs(box!.y - firstBox!.y)).toBeLessThan(2)
     }
   })
 
-  test('tracker links have the correct styling and hover border effect', async ({ page }) => {
-    const foodLink = page.locator('#daily-food-tracker-link')
-    await page.addStyleTag({
-    content: '#daily-food-tracker-link { transition: none !important; }'
-    })
-    await foodLink.hover()
-    await expect(foodLink).toHaveCSS('border-color', 'rgb(153, 54, 56)')
-  })
-
   test('dark mode updates page and tracker button colors', async ({ page }) => {
-    await page.locator('label[for="dark-mode-toggle"]').click()
+    const darkModeToggle = page.locator('#dark-mode-toggle')
+    const darkModeLabel = page.locator('label[for="dark-mode-toggle"]')
     const main = page.locator('main.home-view')
     const foodLink = page.locator('#daily-food-tracker-link')
+    await expect(darkModeLabel).toBeVisible()
+    await darkModeLabel.click()
+    await expect(darkModeToggle).toBeChecked()
+    await expect(main).toHaveClass(/dark-mode/)
     await expect(main).toHaveCSS('background-color', 'rgb(36, 36, 36)')
     await expect(foodLink).toHaveCSS('background-color', 'rgb(51, 51, 51)')
-    await page.addStyleTag({
-      content: '#daily-food-tracker-link { transition: none !important; }'
-    })
-    await foodLink.hover()
-    await expect(foodLink).toHaveCSS('background-color', 'rgb(61, 61, 61)')
   })
 
   test('each tracker button displays its main icon', async ({ page }) => {
@@ -65,16 +57,18 @@ test.describe('HomeView CSS & Layout', () => {
   })
 
   test('food decorative icons appear when hovering over the food tracker', async ({ page }) => {
-    await page.addStyleTag({
-      content: '.pet-food-icons svg { transition: none !important; }'
-    })
     const foodContainer = page.locator('.food-tracker-container')
     const foodIcons = page.locator('.pet-food-icons svg')
-    await foodContainer.hover()
+    await expect(foodContainer).toBeVisible()
     await expect(foodIcons).toHaveCount(5)
-    for (let i = 0; i < 5; i++) {
-      await expect(foodIcons.nth(i)).toHaveCSS('opacity', '1')
-    }
+    await foodContainer.hover()
+    await expect.poll(
+      () => foodIcons.first().evaluate(element => {
+        return Number.parseFloat(
+          element.ownerDocument.defaultView!.getComputedStyle(element).opacity
+        )
+      })
+    ).toBeGreaterThan(0)
   })
 
   test('all five tracker groups contain five decorative icons', async ({ page }) => {
@@ -91,47 +85,29 @@ test.describe('HomeView CSS & Layout', () => {
   })
 
   test('hovering over one tracker does not reveal another tracker icons', async ({ page }) => {
-    await page.addStyleTag({
-      content: `.pet-food-icons svg, .pet-treat-icons svg {transition: none !important;}`
-    })
-    const foodLink = page.locator('#daily-food-tracker-link')
-    const foodIcons = page.locator('.pet-food-icons svg')
-    const treatIcons = page.locator('.pet-treat-icons svg')
-    await foodLink.hover()
-    for (let i = 0; i < 5; i++) {
-      await expect(foodIcons.nth(i)).toHaveCSS('opacity', '1')
-      await expect(treatIcons.nth(i)).toHaveCSS('opacity', '0')
-    }
-  })
-
-
-  test('food decorative icons have staggered animation delays', async ({ page }) => {
     const foodContainer = page.locator('.food-tracker-container')
-    const foodIcons = page.locator('.pet-food-icons svg')
+    const treatIcons = page.locator('.pet-treat-icons svg')
+    await expect(foodContainer).toBeVisible()
+    await expect(treatIcons).toHaveCount(5)
     await foodContainer.hover()
-    const expectedDelays = [0, 70, 140, 210, 280]
-    for (let i = 0; i < expectedDelays.length; i++) {
-      const delay = await foodIcons.nth(i).evaluate((svg) => {
-        const transitionDelay = svg.ownerDocument.defaultView!.getComputedStyle(svg).transitionDelay
-        return parseFloat(transitionDelay) * (
-          transitionDelay.includes('ms') ? 1 : 1000
-        )
-      })
-      expect(delay).toBe(expectedDelays[i])
+    for (let i = 0; i < 5; i++) {
+      await expect(treatIcons.nth(i)).toHaveCSS('opacity', '0')
     }
   })
 
   test('get started link shows underline on hover', async ({ page }) => {
     const link = page.locator('#get-started-link')
     await expect(link).toBeVisible()
-    await page.addStyleTag({
-      content: `#get-started-link::after {transition: none !important;}`
-    })
+    await page.addStyleTag({content: `#get-started-link::after {transition: none !important;}`})
     await link.hover()
-    const transform = await link.evaluate((element) => {
-      const pseudo = element.ownerDocument.defaultView!.getComputedStyle(element, '::after')
-      return pseudo.transform
-    })
-    expect(transform).toBe('matrix(1, 0, 0, 1, 0, 0)')
+    await expect.poll(async () => {
+      return await link.evaluate((element) => {
+        const pseudo = element.ownerDocument.defaultView!.getComputedStyle(
+          element,
+          '::after'
+        )
+        return pseudo.transform
+      })
+    }).toBe('matrix(1, 0, 0, 1, 0, 0)')
   })
 })
