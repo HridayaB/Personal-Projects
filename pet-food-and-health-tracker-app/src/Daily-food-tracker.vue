@@ -9,6 +9,7 @@
   }
 
   const trackedPets = ref<TrackedPet[]>([])
+  const selectedPet = ref<TrackedPet | null>(null)
   const showRemovePetPopup = ref(false)
   const petToRemove = ref<TrackedPet | null>(null)
   const todayDate = new Date().toLocaleDateString('en-US')
@@ -55,8 +56,14 @@
 
   const removeFromThisTracker = () => {
     if (!petToRemove.value) return
-    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petToRemove.value!.id)
+    const petId = petToRemove.value.id
+    trackedPets.value = trackedPets.value.filter(
+      pet => pet.id !== petId
+    )
     cancelRemovePet()
+    if (selectedPet.value?.id === petId) {
+      closePetPopup()
+    }
   }
 
   const removeFromAllTrackers = () => {
@@ -64,8 +71,21 @@
     const petId = petToRemove.value.id
     deletePet(petId)
     localStorage.removeItem(logKeyFor(petId))
-    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
+    trackedPets.value = trackedPets.value.filter(
+      pet => pet.id !== petId
+    )
     cancelRemovePet()
+    if (selectedPet.value?.id === petId) {
+      closePetPopup()
+    }
+  }
+
+  const openPetPopup = (pet: TrackedPet) => {
+    selectedPet.value = pet
+  }
+
+  const closePetPopup = () => {
+    selectedPet.value = null
   }
 </script>
 
@@ -163,17 +183,30 @@
           </div>
         </div>
       </div>
-      <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
-        <p>
-          Tracking for <strong>{{ pet.name }}</strong>
-          <span v-if="pet.breed"> ({{ pet.breed }})</span> — {{ todayDate }}
-        </p>
-        <p>{{ progressOf(pet) }}</p>
-        <p v-if="limitOf(pet)">Remaining feedings for the day: {{ remainingOf(pet) }}</p>
-        <button :disabled="remainingOf(pet) === 0" :data-test="`log-${pet.id}`" @click="logFeeding(pet)">Log feeding for {{ pet.name }}</button>
-        <button :data-test="`remove-log-${pet.id}`" @click="removeLog(pet)">Remove feeding log for {{ pet.name }}</button>
-        <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s feed count</button>
-        <button :data-test="`remove-pet-${pet.id}`" @click="askRemovePet(pet)">Remove {{ pet.name }} from your pet list</button>
+      <div class="pet-list">
+        <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
+          <p><strong>{{ pet.name }}</strong></p>
+          <p v-if="pet.breed">{{ pet.breed }}</p>
+          <p>{{ pet.type }}</p>
+          <button class="view-pet-button" :data-test="`view-${pet.id}`" @click="openPetPopup(pet)">View Tracker</button>
+        </div>
+      </div>
+      <div v-if="selectedPet" class="pet-modal-overlay" @click.self="closePetPopup">
+        <div class="pet-modal-content">
+          <button class="close-modal-button" aria-label="Close pet tracker" @click="closePetPopup">&times;</button>
+          <h3>{{ selectedPet.name }}'s Daily Food Tracker</h3>
+          <p v-if="selectedPet.breed">{{ selectedPet.breed }}</p>
+          <p>{{ selectedPet.type }}</p>
+          <p>Today's date: {{ todayDate }}</p>
+          <p>{{ progressOf(selectedPet) }}</p>
+          <p v-if="limitOf(selectedPet)">Remaining feedings for the day: {{ remainingOf(selectedPet) }}</p>
+          <div class="pet-modal-actions">
+            <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logFeeding(selectedPet)">Log feeding for {{ selectedPet.name }}</button>
+            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove feeding log</button>
+            <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset feed count</button>
+            <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -550,5 +583,291 @@
     font-size: 1.2rem;
     max-width: 600px;
     margin: 0 auto;
+  }
+
+  .pet-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 40px auto;
+  }
+
+  .pet-tracker {
+    box-sizing: border-box;
+    padding: 25px 20px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.3s ease;
+  }
+
+  .pet-tracker:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-tracker p {
+    margin: 8px auto;
+    font-size: 1.1rem;
+  }
+
+  .pet-tracker .view-pet-button {
+    padding: 10px 22px;
+    margin-top: 15px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .pet-tracker .view-pet-button:hover {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .pet-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 35px 30px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+    animation: pet-modal-appear 0.25s ease-out;
+  }
+
+  .pet-modal-content h3 {
+    margin: 10px 25px 20px;
+    font-size: 1.5rem;
+  }
+
+  .pet-modal-content p {
+    margin: 12px auto;
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+
+  .pet-modal-content .close-modal-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    padding: 4px 10px;
+    margin: 0;
+    background: transparent;
+    color: inherit;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.8rem;
+    cursor: pointer;
+  }
+
+  .pet-modal-content .close-modal-button:hover {
+    color: #993638;
+  }
+
+  .pet-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 25px;
+  }
+
+  .pet-modal-content .pet-modal-actions button {
+    padding: 10px 18px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .pet-modal-content .pet-modal-actions button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-modal-content .pet-modal-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pet-modal-content .remove-pet-button {
+    border-color: #993638;
+    color: #993638;
+  }
+
+  .remove-pet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .remove-pet-popup {
+    width: 100%;
+    max-width: 450px;
+    padding: 30px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+    animation: pet-modal-appear 0.25s ease-out;
+  }
+
+  .remove-pet-popup p {
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .remove-pet-popup button {
+    padding: 10px 16px;
+    margin: 6px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .remove-pet-popup button:hover {
+    border-color: #993638;
+  }
+
+  .dark-mode .pet-tracker,
+  .dark-mode .pet-modal-content,
+  .dark-mode .remove-pet-popup {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #4a4a4a;
+  }
+
+  .dark-mode .pet-tracker .view-pet-button,
+  .dark-mode .pet-modal-actions button,
+  .dark-mode .remove-pet-popup button {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #555555;
+  }
+
+  .dark-mode .pet-tracker .view-pet-button:hover,
+  .dark-mode .pet-modal-actions button:hover:not(:disabled),
+  .dark-mode .remove-pet-popup button:hover {
+    background-color: #3d3d3d;
+    border-color: #993638;
+  }
+
+  .dark-mode .pet-modal-content .remove-pet-button {
+    color: #ff9999;
+    border-color: #993638;
+  }
+
+  @keyframes pet-modal-appear {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .pet-list {
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .pet-modal-content {
+      padding: 30px 18px;
+    }
+
+    .pet-modal-content h3 {
+      font-size: 1.25rem;
+    }
+
+    .pet-modal-actions {
+      flex-direction: column;
+    }
+
+    .pet-modal-actions button {
+      width: 100%;
+    }
+  }
+
+  .pet-tracker button:focus-visible,
+  .pet-modal-content button:focus-visible,
+  .remove-pet-popup button:focus-visible {
+    outline: 3px solid rgba(153, 54, 56, 0.4);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pet-tracker,
+    .pet-tracker button,
+    .pet-modal-content,
+    .pet-modal-content button,
+    .remove-pet-popup {
+      animation: none;
+      transition: none;
+    }
   }
 </style>
