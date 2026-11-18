@@ -60,9 +60,7 @@
   const removeFromThisTracker = () => {
     if (!petToRemove.value) return
     const petId = petToRemove.value.id
-    trackedPets.value = trackedPets.value.filter(
-      pet => pet.id !== petId
-    )
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
     cancelRemovePet()
     if (selectedPet.value?.id === petId) {
       closePetPopup()
@@ -74,9 +72,7 @@
     const petId = petToRemove.value.id
     deletePet(petId)
     localStorage.removeItem(logKeyFor(petId))
-    trackedPets.value = trackedPets.value.filter(
-      pet => pet.id !== petId
-    )
+    trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
     cancelRemovePet()
     if (selectedPet.value?.id === petId) {
       closePetPopup()
@@ -230,6 +226,7 @@
           <p v-if="limitOf(selectedPet)">Remaining feedings for the day: {{ remainingOf(selectedPet) }}</p>
           <div class="food-tracker-progress-container">
             <progress class="food-progress-bar" :max="limitOf(selectedPet)" :value="selectedPet.feedCount" :aria-label="`${selectedPet.name} daily feeding progress`"></progress>
+          </div>
           <div class="pet-modal-actions">
             <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logFeeding(selectedPet)">Log feeding for {{ selectedPet.name }}</button>
             <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove feeding log</button>
@@ -241,7 +238,6 @@
           <span v-for="(piece, index) in confettiPieces" :key="index" class="confetti-piece" :style="{ '--x': `${piece.x}px`, '--y': `${piece.y}px`, '--rotation': `${piece.rotation}deg`, '--delay': `${piece.delay}s` }"></span>
         </div>
       </div>
-    </div>
     </div>
 
     <div v-if="showRemovePetPopup" class="remove-pet-overlay">
