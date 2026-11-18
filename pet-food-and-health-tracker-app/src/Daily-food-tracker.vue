@@ -410,6 +410,14 @@
     transform: scale(1.1);
   }
 
+  #get-started-link :deep(svg.get-started-1) {
+    color: #2e3436;
+  }
+
+  .dark-mode #get-started-link :deep(svg.get-started-1) {
+    color: #188b31;
+  }
+
   .home-page-container,
   .get-started-container,
   .treat-tracker-container,
