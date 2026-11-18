@@ -222,4 +222,46 @@ test.describe('Daily Food Tracker CSS & Layout', () => {
     await resetButton.click()
     await expect(popup).toContainText('0 of 2 feedings given today.')
   })
+
+  test('checks that the progress bar exists', async ({ page }) => {
+    await page.locator('[data-test="view-test-pet"]').click()
+    const popup = page.locator('.pet-modal-content')
+    const progressBar = popup.locator('progress.food-progress-bar')
+
+    await expect(progressBar).toBeVisible()
+    await expect(progressBar).toHaveAttribute('max', '2')
+    await expect(progressBar).toHaveAttribute('value', '0')
+    await expect(progressBar).toHaveAttribute('aria-label', 'Buddy daily feeding progress')
+  })
+
+  test('checks that the progress bar works correctly', async ({ page }) => {
+    await page.locator('[data-test="view-test-pet"]').click()
+    const popup = page.locator('.pet-modal-content')
+    const progressBar = popup.locator('progress.food-progress-bar')
+    const logButton = popup.locator('[data-test="log-test-pet"]')
+
+    await expect(progressBar).toHaveAttribute('value', '0')
+    await logButton.click()
+    await expect(progressBar).toHaveAttribute('value', '1')
+    await logButton.click()
+    await expect(progressBar).toHaveAttribute('value', '2')
+    await expect(progressBar).toHaveAttribute('aria-label', 'Buddy daily feeding progress')
+  })
+
+  test('checks if progress bar goes back properly',async ({ page }) => {
+    await page.locator('[data-test="view-test-pet"]').click()
+    const popup = page.locator('.pet-modal-content')
+    const progressBar = popup.locator('progress.food-progress-bar')
+    const logButton = popup.locator('[data-test="log-test-pet"]')
+    const removeLogButton = popup.locator('[data-test="remove-log-test-pet"]')
+    const resetButton = popup.locator('[data-test="reset-test-pet"]')
+
+    await logButton.click()
+    await logButton.click()
+    await expect(progressBar).toHaveAttribute('value', '2')
+    await removeLogButton.click()
+    await expect(progressBar).toHaveAttribute('value', '1')
+    await resetButton.click()
+    await expect(progressBar).toHaveAttribute('value', '0')
+  })
 })
