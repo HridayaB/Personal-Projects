@@ -9,9 +9,12 @@
     exerciseDuration: number
     exerciseTypes: number
     exerciseLabels: string[]
+    exerciseBreakdown: Record<string, number>
+    exerciseHistory: string[]
   }
 
   const trackedPets = ref<TrackedPet[]>([])
+  const selectedPet = ref<TrackedPet | null>(null)
   const showRemovePetPopup = ref(false)
   const petToRemove = ref<TrackedPet | null>(null)
   const todayDate = new Date().toLocaleDateString('en-US')
@@ -29,16 +32,21 @@
         exerciseDuration: Number((pet as Pet & { exerciseDuration?: number | string }).exerciseDuration ?? 0),
         exerciseTypes: Number((pet as Pet & { exerciseTypes?: number | string }).exerciseTypes ?? 0),
         exerciseLabels,
+        exerciseBreakdown: JSON.parse(localStorage.getItem(`exerciseBreakdown:${pet.id}:${todayDate}`) || '{}'),
+        exerciseHistory: JSON.parse(localStorage.getItem(`exerciseHistory:${pet.id}:${todayDate}`) || '[]'),
       }
     })
     trackedPets.value.forEach(pet => {
       timerSeconds.value[pet.id] = pet.exerciseDuration * 60
+      timerMinutes.value[pet.id] = pet.exerciseDuration
     })
   })
 
   onUnmounted(() => {
-    Object.values(timerIntervals).forEach(interval => {
+    Object.entries(timerIntervals).forEach(([petId, interval]) => {
       clearInterval(interval)
+      delete timerIntervals[petId]
+      timerRunning.value[petId] = false
     })
   })
 
@@ -47,16 +55,36 @@
   const remainingOf = (p: TrackedPet) => Math.max(0, limitOf(p) - p.exerciseCount)
   const progressOf = (p: TrackedPet) => limitOf(p) ? `${p.exerciseCount} of ${limitOf(p)} exercise sessions done today.` : 'No exercise goal set.'
 
+  const saveExerciseBreakdown = (p: TrackedPet) => {
+    localStorage.setItem(`exerciseBreakdown:${p.id}:${todayDate}`, JSON.stringify(p.exerciseBreakdown))
+    localStorage.setItem(`exerciseHistory:${p.id}:${todayDate}`, JSON.stringify(p.exerciseHistory))
+  }
   const logExercise = (p: TrackedPet) => {
-    if(limitOf(p) && p.exerciseCount >= limitOf(p)) return
+    if (limitOf(p) && p.exerciseCount >= limitOf(p)) return
+    const label = selectedLabels.value[p.id] || 'Other'
     p.exerciseCount += 1
+    p.exerciseHistory.push(label)
+    p.exerciseBreakdown[label] = (p.exerciseBreakdown[label] || 0) + 1
     localStorage.setItem(logKeyFor(p.id), String(p.exerciseCount))
+    saveExerciseBreakdown(p)
   }
 
   const removeLog = (p: TrackedPet) => {
     if (p.exerciseCount === 0) return
     p.exerciseCount -= 1
-    localStorage.setItem(logKeyFor(p.id), String(p.exerciseCount))
+    const lastLabel = p.exerciseHistory.pop()
+    if (lastLabel && p.exerciseBreakdown[lastLabel]) {
+      p.exerciseBreakdown[lastLabel] -= 1
+      if (p.exerciseBreakdown[lastLabel] === 0) {
+        delete p.exerciseBreakdown[lastLabel]
+      }
+    }
+    if (p.exerciseCount === 0) {
+      localStorage.removeItem(logKeyFor(p.id))
+    } else {
+      localStorage.setItem(logKeyFor(p.id), String(p.exerciseCount))
+    }
+    saveExerciseBreakdown(p)
   }
 
   const resetLog = (p: TrackedPet) => {
@@ -76,8 +104,12 @@
 
   const removeFromThisTracker = () => {
     if (!petToRemove.value) return
+    const petId  = petToRemove.value.id
     trackedPets.value = trackedPets.value.filter(pet => pet.id !== petToRemove.value!.id)
     cancelRemovePet()
+    if (selectedPet.value?.id === petId) {
+      closePetPopup()
+    }
   }
 
   const removeFromAllTrackers = () => {
@@ -87,11 +119,23 @@
     localStorage.removeItem(logKeyFor(petId))
     trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
     cancelRemovePet()
+    if (selectedPet.value?.id === petId) {
+      closePetPopup()
+    }
   }
 
+  const openPetPopup = (pet: TrackedPet) => {
+    selectedPet.value = pet
+  }
+
+  const closePetPopup = () => {
+    selectedPet.value = null
+  }
   const timerSeconds = ref<Record<string, number>>({})
+  const timerMinutes = ref<Record<string, number>>({})
   const timerRunning = ref<Record<string, boolean>>({})
   const timerIntervals: Record<string, ReturnType<typeof setInterval>> = {}
+  const timerEnabled = ref<Record<string, boolean>>({})
 
   const formatTimer = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -99,13 +143,19 @@
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
   }
 
+  const updateTimerDuration = (pet: TrackedPet) => {
+    const minutes = Number(timerMinutes.value[pet.id])
+    const validMinutes = Number.isFinite(minutes) && minutes >= 1 ? minutes : 1
+    timerMinutes.value[pet.id] = validMinutes
+    timerSeconds.value[pet.id] = validMinutes * 60
+  }
+
   const startTimer = (p: TrackedPet) => {
-    if (timerRunning.value[p.id]) return
+     if (timerRunning.value[p.id]) return
     if (timerSeconds.value[p.id] === undefined || timerSeconds.value[p.id] === 0) {
       timerSeconds.value[p.id] = p.exerciseDuration * 60
     }
     timerRunning.value[p.id] = true
-
     timerIntervals[p.id] = setInterval(() => {
       const seconds = timerSeconds.value[p.id] ?? 0
       if (seconds > 0) {
@@ -126,7 +176,7 @@
 
   const resetTimer = (p: TrackedPet) => {
     stopTimer(p)
-    timerSeconds.value[p.id] = p.exerciseDuration * 60
+    timerSeconds.value[p.id] = (timerMinutes.value[p.id] || p.exerciseDuration) * 60
   }
 
   const selectedLabels = ref<Record<string, string>>({})
@@ -138,7 +188,7 @@
 <template>
   <main class="daily-exercise-tracker" :class="{ 'dark-mode': isDarkMode }">
     <h2>Daily Exercise Tracker</h2>
-    <input id="dark-mode-toggle" v-model="isDarkMode" type="checkbox"/>
+    <input id="dark-mode-toggle" v-model="isDarkMode" type="checkbox" />
     <label for="dark-mode-toggle">
       <Icons :dark-mode="isDarkMode" />
     </label>
@@ -229,30 +279,95 @@
           </div>
         </div>
       </div>
-      <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
-        <p>
-          Tracking for <strong>{{ pet.name }}</strong>
-          <span v-if="pet.breed"> ({{ pet.breed }})</span> — {{ todayDate }}
-        </p>
-        <p>{{ progressOf(pet) }}</p>
-        <p v-if="limitOf(pet)">Remaining exercises for the day: {{ remainingOf(pet) }}</p>
-        <button :disabled="remainingOf(pet) === 0" :data-test="`log-${pet.id}`" @click="logExercise(pet)">Log exercise</button>
-        <button :data-test="`remove-log-${pet.id}`" @click="removeLog(pet)">Remove exercise</button>
-        <div v-if="pet.exerciseLabels.length">
-          <button v-for="label in pet.exerciseLabels" :key="label" :data-test="`exercise-label-${pet.id}-${label}`" :class="{ selected: selectedLabels[pet.id] === label }" @click="selectLabel(pet, label)">{{ label }}</button>
-        </div>
-        <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s exercise count</button>
-        <button :data-test="`remove-pet-${pet.id}`" @click="askRemovePet(pet)">Remove {{ pet.name }}</button>
-
-        <div>
-          <p>Would you like to set a timer for the exercise duration of {{ pet.exerciseDuration }} minutes as your pet exercises?</p>
-          <input type="checkbox" :data-test="`timer-checkbox-${pet.id}`">
-          <p :data-test="`timer-${pet.id}`">{{ formatTimer(timerSeconds[pet.id] ?? pet.exerciseDuration * 60) }}</p>
-          <button :data-test="`start-timer-${pet.id}`" @click="startTimer(pet)">Start Timer</button>
-          <button :data-test="`stop-timer-${pet.id}`" @click="stopTimer(pet)">Stop Timer</button>
-          <button :data-test="`reset-timer-${pet.id}`" @click="resetTimer(pet)">Reset Timer</button>
+      <div class="pet-list">
+        <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
+          <p><strong>{{ pet.name }}</strong></p>
+          <p v-if="pet.breed">{{ pet.breed }}</p>
+          <p>{{ pet.type }}</p>
+          <button class="view-pet-button" :data-test="`view-${pet.id}`" @click="openPetPopup(pet)">View Tracker</button>
         </div>
       </div>
+      <div v-if="selectedPet" class="pet-modal-overlay" @click.self="closePetPopup">
+        <div class="pet-modal-content">
+          <button class="close-modal-button" aria-label="Close pet tracker" @click="closePetPopup">&times;</button>
+          <h3>{{ selectedPet.name }}'s Daily Exercise Tracker</h3>
+          <p v-if="selectedPet.breed">{{ selectedPet.breed }}</p>
+          <p>{{ selectedPet.type }}</p>
+          <p>Today's date: {{ todayDate }}</p>
+          <p>{{ progressOf(selectedPet) }}</p>
+          <p v-if="limitOf(selectedPet)">Remaining exercises for the day: {{ remainingOf(selectedPet) }}</p>
+          <div class="pet-modal-actions">
+            <div v-if="Object.keys(selectedPet.exerciseBreakdown).length" class="exercise-breakdown">
+            <h4>Today's Exercise Breakdown</h4>
+            <div v-for="(count, label) in selectedPet.exerciseBreakdown" :key="label" class="exercise-breakdown-item">
+              <div class="exercise-breakdown-heading">
+                <span>{{ label }}</span>
+                <span>{{ count }} completed</span>
+              </div>
+              <div class="exercise-breakdown-bar">
+                <div class="exercise-breakdown-progress" :style="{width: `${selectedPet.exerciseCount ? (count / selectedPet.exerciseCount) * 100 : 0}%`}"></div>
+              </div>
+            </div>
+          </div>
+          <div v-if="selectedPet.exerciseLabels.length" class="exercise-types-section">
+            <p class="exercise-types-title">Choose an exercise type:</p>
+            <div class="exercise-type-buttons">
+              <button v-for="label in selectedPet.exerciseLabels" :key="label" :data-test="`exercise-label-${selectedPet.id}-${label}`" :class="{ selected: selectedLabels[selectedPet.id] === label }" @click="selectLabel(selectedPet, label)">{{ label }}</button>
+            </div>
+          </div>
+          <div class="exercise-log-buttons">
+            <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logExercise(selectedPet)">Log exercise for {{ selectedPet.name }}</button>
+            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove exercise</button>
+          </div>
+          <div class="reset-exercise-count-button">
+            <button  :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset exercise count</button>
+          </div>
+          <div>
+            <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
+          </div>
+
+          <div class="exercise-timer-section">
+            <div v-if="!timerEnabled[selectedPet.id]" class="timer-prompt">
+              <p class="timer-question">Would you like to set a timer for {{ selectedPet.name }}'s exercise?</p>
+              <label class="timer-toggle">
+                <input v-model="timerEnabled[selectedPet.id]" type="checkbox" :data-test="`timer-checkbox-${selectedPet.id}`" :aria-label="`Enable exercise timer for ${selectedPet.name}`" />
+                <span class="timer-toggle-slider"></span>
+              </label>
+            </div>
+            <div v-if="timerEnabled[selectedPet.id]" class="timer-controls-wrapper">
+              <div class="timer-duration-setting">
+                <label :for="`timer-minutes-${selectedPet.id}`">
+                  Set timer duration
+                </label>
+                <div class="timer-duration-input">
+                  <input :id="`timer-minutes-${selectedPet.id}`" v-model.number="timerMinutes[selectedPet.id]" type="number" min="1" max="180" :disabled="timerRunning[selectedPet.id]" :data-test="`timer-minutes-${selectedPet.id}`" @change="updateTimerDuration(selectedPet)" />
+                  <span>minutes</span>
+                </div>
+              </div>
+              <div class="exercise-clock" :class="{ 'timer-running': timerRunning[selectedPet.id] }" :data-test="`timer-${selectedPet.id}`">
+                <div class="clock-face">
+                  <span class="clock-number clock-12">12</span>
+                  <span class="clock-number clock-3">3</span>
+                  <span class="clock-number clock-6">6</span>
+                  <span class="clock-number clock-9">9</span>
+                  <div class="clock-time">
+                    {{ formatTimer(timerSeconds[selectedPet.id] ?? selectedPet.exerciseDuration * 60) }}
+                  </div>
+                  <div class="clock-center">
+                    <span>Exercise Time</span>
+                  </div>
+                </div>
+              </div>
+              <div class="timer-controls">
+                <button :data-test="`start-timer-${selectedPet.id}`" :disabled="timerRunning[selectedPet.id] || timerSeconds[selectedPet.id] === 0" @click="startTimer(selectedPet)">Start Timer</button>
+                <button :data-test="`stop-timer-${selectedPet.id}`" :disabled="!timerRunning[selectedPet.id]" @click="stopTimer(selectedPet)">Stop Timer</button>
+                <button :data-test="`reset-timer-${selectedPet.id}`" @click="resetTimer(selectedPet)">Reset Timer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
 
     <div v-if="showRemovePetPopup" class="remove-pet-overlay">
@@ -288,7 +403,7 @@
     color: #fff;
   }
 
-  label {
+  label[for="dark-mode-toggle"] {
     width: 70px;
     height: 30px;
     top: 1.5rem;
@@ -302,7 +417,7 @@
     transition: 0.3s;
   }
 
-  label:after {
+  label[for="dark-mode-toggle"]:after {
     content: "";
     width: 28px;
     height: 28px;
@@ -316,7 +431,11 @@
     transition: 0.3s;
   }
 
-  input {
+  label[for="dark-mode-toggle"]:active:after {
+    width: 35px;
+  }
+
+  #dark-mode-toggle {
     width: 0;
     height: 0;
     visibility: hidden;
@@ -324,48 +443,48 @@
     position: absolute;
   }
 
-  input:checked + label {
+  #dark-mode-toggle:checked + label[for="dark-mode-toggle"] {
     background: #242424
   }
 
-  input:checked + label:after {
+  #dark-mode-toggle:checked + label[for="dark-mode-toggle"]:after {
     left: 69px;
     transform: translateX(-100%);
     background: linear-gradient(180deg, #777, #3a3a3a);
   }
 
-  label:active:after {
+  #dark-mode-toggle:active:after {
     width: 35px;
   }
 
-  label :deep(svg) {
+  label[for="dark-mode-toggle"] :deep(svg) {
     position: absolute;
     width: 25px;
-    height: 120px;
+    height: 25px;
     top: 50%;
     transform: translate(-50%, -50%);
     z-index: 10;
   }
 
-  label :deep(svg.sun-icon) {
+  label[for="dark-mode-toggle"] :deep(svg.sun-icon) {
     left: 15px;
     transition: 0.3s;
   }
 
-  label :deep(svg.moon-icon) {
+  label[for="dark-mode-toggle"] :deep(svg.moon-icon) {
     left: 55px;
     transition: 0.3s;
   }
 
-  label :deep(svg.sun-icon path) {
+  label[for="dark-mode-toggle"] :deep(svg.sun-icon path) {
     fill: var(--sun-icon-color);
   }
 
-  label :deep(svg.sun-icon rect) {
+  label[for="dark-mode-toggle"] :deep(svg.sun-icon rect) {
     fill: transparent;
   }
 
-  label :deep(svg.moon-icon path) {
+  label[for="dark-mode-toggle"] :deep(svg.moon-icon path) {
     fill: var(--moon-icon-color);
   }
 
@@ -636,5 +755,774 @@
     font-size: 1.2rem;
     max-width: 600px;
     margin: 0 auto;
+  }
+
+  .pet-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 40px auto;
+  }
+
+  .pet-tracker {
+    box-sizing: border-box;
+    padding: 25px 20px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.3s ease;
+  }
+
+  .pet-tracker:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-tracker p {
+    margin: 8px auto;
+    font-size: 1.1rem;
+  }
+
+  .pet-tracker .view-pet-button {
+    padding: 10px 22px;
+    margin-top: 15px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .pet-tracker .view-pet-button:hover {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .pet-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 35px 30px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+    animation: pet-modal-appear 0.25s ease-out;
+  }
+
+  .pet-modal-content h3 {
+    margin: 10px 25px 20px;
+    font-size: 1.5rem;
+  }
+
+  .pet-modal-content p {
+    margin: 12px auto;
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+
+  .pet-modal-content .close-modal-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    padding: 4px 10px;
+    margin: 0;
+    background: transparent;
+    color: inherit;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.8rem;
+    cursor: pointer;
+  }
+
+  .pet-modal-content .close-modal-button:hover {
+    color: #993638;
+  }
+
+  .pet-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 25px;
+  }
+
+  .exercise-log-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .exercise-type-buttons button.selected {
+    animation: exercise-type-selected 0.25s ease forwards;
+  }
+
+  .pet-modal-content .pet-modal-actions button {
+    padding: 10px 18px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .pet-modal-content .pet-modal-actions button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-modal-content .pet-modal-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pet-modal-content .remove-pet-button {
+    border-color: #993638;
+    color: #993638;
+  }
+
+  .remove-pet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .remove-pet-popup {
+    width: 100%;
+    max-width: 450px;
+    padding: 30px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+    animation: pet-modal-appear 0.25s ease-out;
+  }
+
+  .remove-pet-popup p {
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .remove-pet-popup button {
+    padding: 10px 16px;
+    margin: 6px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .remove-pet-popup button:hover {
+    border-color: #993638;
+  }
+
+  .dark-mode .pet-tracker,
+  .dark-mode .pet-modal-content,
+  .dark-mode .remove-pet-popup {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #4a4a4a;
+  }
+
+  .dark-mode .pet-tracker .view-pet-button,
+  .dark-mode .pet-modal-actions button,
+  .dark-mode .remove-pet-popup button {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #555555;
+  }
+
+  .dark-mode .pet-tracker .view-pet-button:hover,
+  .dark-mode .pet-modal-actions button:hover:not(:disabled),
+  .dark-mode .remove-pet-popup button:hover {
+    background-color: #3d3d3d;
+    border-color: #993638;
+  }
+
+  .dark-mode .pet-modal-content .remove-pet-button {
+    color: #ff9999;
+    border-color: #993638;
+  }
+
+  @keyframes pet-modal-appear {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .pet-list {
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .pet-modal-content {
+      padding: 30px 18px;
+    }
+
+    .pet-modal-content h3 {
+      font-size: 1.25rem;
+    }
+
+    .pet-modal-actions {
+      flex-direction: column;
+    }
+
+    .pet-modal-actions button {
+      width: 100%;
+    }
+  }
+
+  .pet-tracker button:focus-visible,
+  .pet-modal-content button:focus-visible,
+  .remove-pet-popup button:focus-visible {
+    outline: 3px solid rgba(153, 54, 56, 0.4);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pet-tracker,
+    .pet-tracker button,
+    .pet-modal-content,
+    .pet-modal-content button,
+    .remove-pet-popup {
+      animation: none;
+      transition: none;
+    }
+  }
+
+  .exercise-timer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 500px;
+    margin: 1.5rem auto;
+    padding: 1.25rem;
+    border-radius: 12px;
+    background-color: #e8e8e8;
+    border: 1px solid #d4d4d4;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .daily-exercise-tracker.dark-mode .exercise-timer-section {
+    background-color: #2f2f2f;
+    border-color: #444444;
+  }
+
+  .timer-question {
+    margin: 0 0 1rem;
+    line-height: 1.5;
+  }
+
+  .exercise-timer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    width: max-content;
+    max-width: 135px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background-color: #242424;
+    color: #ffffff;
+    font-family: monospace;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: center;
+    box-sizing: border-box;
+    z-index: 2;
+  }
+
+  .timer-controls button {
+    min-width: 130px;
+  }
+
+  .exercise-types-section {
+    width: 100%;
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  .exercise-types-title {
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+
+  .exercise-type-buttons button {
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .exercise-type-buttons button:hover {
+    transform: translateY(-2px);
+  }
+
+  .exercise-type-buttons button.selected {
+    background-color: #529568;
+    color: #ffffff;
+    border-color: #3f7d52;
+    font-weight: 700;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow:
+      0 0 0 3px rgba(82, 149, 104, 0.2),
+      0 4px 10px rgba(82, 149, 104, 0.3);
+    animation: exercise-type-selected 0.25s ease-out;
+  }
+
+  @keyframes exercise-type-selected {
+    0% {
+      transform: scale(0.95);
+    }
+
+    60% {
+      transform: scale(1.08);
+    }
+
+    100% {
+      transform: translateY(-2px) scale(1.04);
+    }
+  }
+
+  .exercise-timer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .timer-duration-setting label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .timer-duration-input {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .timer-duration-input input {
+    width: 80px;
+    padding: 0.5rem;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    font-size: 1rem;
+    text-align: center;
+    background-color: #ffffff;
+    color: #222222;
+  }
+
+  .daily-exercise-tracker.dark-mode .timer-duration-input input {
+    background-color: #444444;
+    border-color: #666666;
+    color: #ffffff;
+  }
+
+  .timer-duration-input input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .exercise-clock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 1rem auto 1.5rem;
+  }
+
+  .clock-face {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    border: 8px solid #b7c5b5;
+    border-radius: 50%;
+    background-color: #fffdf5;
+    box-shadow: 0 5px 15px rgba(45, 75, 48, 0.15), inset 0 0 0 5px #e5eddf;
+    color: #293c2d;
+  }
+
+  .daily-exercise-tracker.dark-mode .clock-face {
+    background-color: #1f1f1f;
+    border-color: #666666;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 0 4px #333333;
+    color: #FFF;
+  }
+
+  .clock-time {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #b7c5b5;
+    color: #293c2d;
+    font-family: monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .daily-exercise-tracker.dark-mode .clock-time {
+    background: #666666;
+    color: #f0f5eb;
+  }
+
+  .clock-number {
+    position: absolute;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .clock-12 {
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .clock-3 {
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .clock-6 {
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .clock-9 {
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .clock-mark {
+    position: absolute;
+    width: 3px;
+    height: 10px;
+    background-color: #555555;
+    left: 50%;
+    top: 50%;
+    transform-origin: center 100px;
+  }
+
+  .clock-time {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: monospace;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .clock-center {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+  }
+
+  .exercise-clock.timer-running .clock-face {
+    animation: timer-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes timer-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.02);
+    }
+  }
+
+  .timer-controls {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    justify-content: center;
+    gap: 12px;
+    margin-top: 1.25rem;
+  }
+
+  .timer-controls button,
+  .disable-timer-button {
+    min-width: 115px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .timer-controls button:hover:not(:disabled),
+  .disable-timer-button:hover {
+    transform: translateY(-2px);
+  }
+
+  .timer-controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .timer-controls button:first-child {
+    background-color: #265939;
+    color: white;
+  }
+
+  .timer-controls button:nth-child(2) {
+    background-color: #792e2a;
+    color: white;
+  }
+
+  .timer-controls button:nth-child(3) {
+    background-color: #345d89;
+    color: white;
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  .disable-timer-button {
+    background-color: #777777;
+    color: white;
+    margin-top: 1rem;
+  }
+
+  .daily-exercise-tracker.dark-mode .timer-controls button:first-child {
+    background-color: #265939;
+  }
+
+  .daily-exercise-tracker.dark-mode .timer-controls button:nth-child(2) {
+    background-color: #792e2a;
+  }
+
+  .daily-exercise-tracker.dark-mode .timer-controls button:nth-child(3) {
+    background-color: #345d89;
+  }
+
+  .timer-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin: 1rem auto;
+  }
+
+  .timer-question {
+    max-width: 420px;
+    margin: 0 auto;
+    font-size: 1rem !important;
+    line-height: 1.5;
+  }
+
+  .timer-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    top: auto;
+    right: auto;
+    gap: 10px;
+    cursor: pointer;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .timer-toggle input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    visibility: visible;
+  }
+
+  .timer-toggle-slider {
+    position: relative;
+    width: 42px;
+    height: 23px;
+    border-radius: 20px;
+    background-color: #aaa;
+    transition: background-color 0.2s ease;
+  }
+
+  .timer-toggle-slider::after {
+    content: "";
+    position: absolute;
+    width: 17px;
+    height: 17px;
+    top: 3px;
+    left: 3px;
+    border-radius: 50%;
+    background-color: white;
+    transition: transform 0.2s ease;
+  }
+
+  .timer-toggle input:checked + .timer-toggle-slider {
+    background-color: #378653;
+  }
+
+  .timer-toggle input:checked + .timer-toggle-slider::after {
+    transform: translateX(19px);
+  }
+
+  .timer-toggle-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .timer-toggle input:focus-visible + .timer-toggle-slider {
+    outline: 3px solid #7aa7d8;
+    outline-offset: 3px;
+  }
+
+  .exercise-breakdown {
+    width: 100%;
+    max-width: 450px;
+    margin: 1.5rem auto;
+    padding: 18px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background-color: #f0f4ed;
+    border: 1px solid #d5e1d2;
+    text-align: left;
+  }
+
+  .exercise-breakdown h4 {
+    margin: 0 0 1.25rem;
+    text-align: center;
+    font-size: 1.15rem;
+  }
+
+  .exercise-breakdown-item {
+    margin-bottom: 1rem;
+  }
+
+  .exercise-breakdown-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 7px;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .exercise-breakdown-bar {
+    width: 100%;
+    height: 9px;
+    overflow: hidden;
+    border-radius: 10px;
+    background-color: #dce5d9;
+  }
+
+  .exercise-breakdown-progress {
+    height: 100%;
+    border-radius: 10px;
+    background-color: #529568;
+    transition: width 0.3s ease;
+  }
+
+  .daily-exercise-tracker.dark-mode .exercise-breakdown {
+    background-color: #293a30;
+    border-color: #465d4b;
+  }
+
+  .daily-exercise-tracker.dark-mode .exercise-breakdown-bar {
+    background-color: #435448;
+  }
+
+  .daily-exercise-tracker.dark-mode .exercise-breakdown-progress {
+    background-color: #77b783;
   }
 </style>
