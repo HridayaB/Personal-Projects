@@ -25,6 +25,10 @@ const mountView = async () => {
   return { wrapper, router}
 }
 
+const openPetTracker = async (wrapper: ReturnType<typeof mount>, petId: string) => {
+  await wrapper.find(`[data-test="view-${petId}"]`).trigger('click')
+}
+
 const base = {
   type: 'Dog', name: 'Buddy', weight: '50', breed: 'Siberian Husky', foodFrequency: '2', treatFrequency: '5',
 }
@@ -44,15 +48,18 @@ describe('DailyTreatTracker', () => {
   })
 
   it('reads pet info from storage', async () => {
-    seedPet({ name: 'Rex', treatFrequency: '3' })
+    const pet = seedPet({ name: 'Rex', treatFrequency: '3' })
     const { wrapper } = await mountView()
     expect(wrapper.text()).toContain('Rex')
+    expect(wrapper.find(`[data-test="view-${pet.id}"]`).exists()).toBe(true)
+    await openPetTracker(wrapper, pet.id)
     expect(wrapper.text()).toContain('0 of 3 treats given today.')
   })
 
   it('increments the treat count and persists under the pet id', async () => {
     const pet = seedPet({ name: 'Cat', treatFrequency: '2' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, pet.id)
     await wrapper.find(`[data-test="log-${pet.id}"]`).trigger('click')
     expect(wrapper.text()).toContain('1 of 2 treats given today.')
     expect(localStorage.getItem(`treatLog:${pet.id}:${todayDate()}`)).toBe('1')
@@ -62,12 +69,14 @@ describe('DailyTreatTracker', () => {
     const pet = seedPet({ name: 'Bird', treatFrequency: '3' })
     localStorage.setItem(`treatLog:${pet.id}:${todayDate()}`, '2')
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, pet.id)
     expect(wrapper.text()).toContain('2 of 3 treats given today.')
   })
 
   it('does not allow treat count to exceed the daily limit', async () => {
     const pet = seedPet({ name: 'Rabbit', treatFrequency: '1' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, pet.id)
     const logBtn = () => wrapper.find(`[data-test="log-${pet.id}"]`)
     await logBtn().trigger('click')
     expect(wrapper.text()).toContain('1 of 1 treats given today.')
@@ -78,6 +87,7 @@ describe('DailyTreatTracker', () => {
     const pet = seedPet({ name: 'Fish', treatFrequency: '2' })
     localStorage.setItem(`treatLog:${pet.id}:${todayDate()}`, '1')
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, pet.id)
     await wrapper.find(`[data-test="reset-${pet.id}"]`).trigger('click')
     expect(wrapper.text()).toContain('0 of 2 treats given today.')
     expect(localStorage.getItem(`treatLog:${pet.id}:${todayDate()}`)).toBeNull()
@@ -96,28 +106,39 @@ describe('DailyTreatTracker', () => {
     const buddy = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const whiskers = seedPet({ name: 'Whiskers', type: 'Cat', treatFrequency: '3' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, whiskers.id)
     await wrapper.find(`[data-test="log-${whiskers.id}"]`).trigger('click')
-    expect(wrapper.text()).toContain('1 of 3 treats given today.')
-    expect(wrapper.text()).toContain('0 of 2 treats given today.')
+    expect(localStorage.getItem(`treatLog:${whiskers.id}:${todayDate()}`)).toBe('1')
     expect(localStorage.getItem(`treatLog:${buddy.id}:${todayDate()}`)).toBeNull()
+    await wrapper.find('.close-modal-button').trigger('click')
+    await openPetTracker(wrapper, buddy.id)
+    await wrapper.find(`[data-test="log-${buddy.id}"]`).trigger('click')
+    expect(localStorage.getItem(`treatLog:${buddy.id}:${todayDate()}`)).toBe('1')
+    expect(localStorage.getItem(`treatLog:${whiskers.id}:${todayDate()}`)).toBe('1')
   })
 
   it('writes each pet\'s log under its own key', async () => {
     const pet = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, pet.id)
     await wrapper.find(`[data-test="log-${pet.id}"]`).trigger('click')
     expect(localStorage.getItem(`treatLog:${pet.id}:${todayDate()}`)).toBe('1')
   })
 
   it('keeps separate logs for different pets', async () => {
-    seedPet({ name: 'Buddy', treatFrequency: '2' })
+    const buddy = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const whiskers = seedPet({ name: 'Whiskers', type: 'Cat', treatFrequency: '3' })
     const { wrapper } = await mountView()
-    const logWhiskers = () => wrapper.find(`[data-test="log-${whiskers.id}"]`)
-    await logWhiskers().trigger('click')
-    await logWhiskers().trigger('click')
-    expect(wrapper.text()).toContain('2 of 3 treats given today.')
-    expect(wrapper.text()).toContain('0 of 2 treats given today.')
+    await openPetTracker(wrapper, whiskers.id)
+    await wrapper.find(`[data-test="log-${whiskers.id}"]`).trigger('click')
+    await wrapper.find(`[data-test="log-${whiskers.id}"]`).trigger('click')
+    expect(localStorage.getItem(`treatLog:${whiskers.id}:${todayDate()}`)).toBe('2')
+    expect(localStorage.getItem(`treatLog:${buddy.id}:${todayDate()}`)).toBeNull()
+    await wrapper.find('.close-modal-button').trigger('click')
+    await openPetTracker(wrapper, buddy.id)
+    await wrapper.find(`[data-test="log-${buddy.id}"]`).trigger('click')
+    expect(localStorage.getItem(`treatLog:${buddy.id}:${todayDate()}`)).toBe('1')
+    expect(localStorage.getItem(`treatLog:${whiskers.id}:${todayDate()}`)).toBe('2')
   })
 
   it('links to the home page', async () => {
@@ -183,6 +204,7 @@ describe('DailyTreatTracker', () => {
   it('removes a log from the treat count', async () => {
     const pet = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, pet.id)
     await wrapper.find(`[data-test="log-${pet.id}"]`).trigger('click')
     expect(wrapper.text()).toContain('1 of 2 treats given today.')
     expect(localStorage.getItem(`treatLog:${pet.id}:${todayDate()}`)).toBe('1')
@@ -195,14 +217,17 @@ describe('DailyTreatTracker', () => {
     const buddy = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const whiskers = seedPet({ name: 'Whiskers', treatFrequency: '3' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, whiskers.id)
     await wrapper.find(`[data-test="log-${whiskers.id}"]`).trigger('click')
     await wrapper.find(`[data-test="log-${whiskers.id}"]`).trigger('click')
+    await wrapper.find('.close-modal-button').trigger('click')
+    await openPetTracker(wrapper, buddy.id)
     await wrapper.find(`[data-test="log-${buddy.id}"]`).trigger('click')
     expect(wrapper.text()).toContain('1 of 2 treats given today.')
-    expect(wrapper.text()).toContain('2 of 3 treats given today.')
+    await wrapper.find('.close-modal-button').trigger('click')
+    await openPetTracker(wrapper, whiskers.id)
     await wrapper.find(`[data-test="remove-log-${whiskers.id}"]`).trigger('click')
     expect(wrapper.text()).toContain('1 of 3 treats given today.')
-    expect(wrapper.text()).toContain('1 of 2 treats given today.')
     expect(localStorage.getItem(`treatLog:${whiskers.id}:${todayDate()}`)).toBe('1')
     expect(localStorage.getItem(`treatLog:${buddy.id}:${todayDate()}`)).toBe('1')
   })
@@ -210,6 +235,7 @@ describe('DailyTreatTracker', () => {
   it('removes a pet from this tracker only', async () => {
     const pet = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, pet.id)
     await wrapper.find(`[data-test="remove-pet-${pet.id}"]`).trigger('click')
     expect(wrapper.text()).toContain('Buddy')
     expect(wrapper.text()).toContain('Remove from this tracker')
@@ -223,17 +249,23 @@ describe('DailyTreatTracker', () => {
     const buddy = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const whiskers = seedPet({ name: 'Whiskers', treatFrequency: '3' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, buddy.id)
     await wrapper.find(`[data-test="remove-pet-${buddy.id}"]`).trigger('click')
     await wrapper.findAll('button').find(button => button.text() === 'Remove from this tracker')!.trigger('click')
     expect(wrapper.text()).not.toContain('Buddy')
     expect(wrapper.text()).toContain('Whiskers')
-    expect(wrapper.find(`[data-test="log-${buddy.id}"]`).exists()).toBe(false)
+    expect(wrapper.find(`[data-test="view-${buddy.id}"]`).exists()).toBe(false)
+    const savedPets = JSON.parse(localStorage.getItem('pets') || '[]')
+    expect(savedPets).toHaveLength(2)
+    expect(savedPets.some((pet: { id: string }) => pet.id === buddy.id)).toBe(true)
+    await openPetTracker(wrapper, whiskers.id)
     expect(wrapper.find(`[data-test="log-${whiskers.id}"]`).exists()).toBe(true)
   })
 
   it('removes a pet from all trackers', async () => {
     const pet = seedPet({ name: 'Buddy', treatFrequency: '2' })
     const { wrapper } = await mountView()
+    await openPetTracker(wrapper, pet.id)
     await wrapper.find(`[data-test="remove-pet-${pet.id}"]`).trigger('click')
     await wrapper.findAll('button').find(button => button.text() === 'Remove from all trackers')!.trigger('click')
     expect(wrapper.text()).not.toContain('Buddy')

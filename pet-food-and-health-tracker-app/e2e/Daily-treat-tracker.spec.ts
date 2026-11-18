@@ -116,4 +116,114 @@ test.describe('Daily Treat Tracker CSS & Layout', () => {
       await expect(page.locator(`${group} svg`)).toHaveCount(5)
     }
   })
+
+  test('there is a popup for each pet', async ({ page }) => {
+    const pets = [
+      { id: 'test-pet', name: 'Buddy' },
+      { id: 'test-pet-2', name: 'Whiskers' },
+    ]
+    const petCards = page.locator('.pet-tracker')
+    const popup = page.locator('.pet-modal-content')
+    await expect(petCards).toHaveCount(pets.length)
+    for(const pet of pets) {
+      await page.locator(`[data-test="view-${pet.id}"]`).click()
+      await expect(popup).toBeVisible()
+      await expect(popup).toContainText(`${pet.name}'s Daily Treat Tracker`)
+      await expect(popup).toContainText(`Today's date:`)
+      await page.getByRole('button', { name: 'Close pet tracker' }).click()
+      await expect(popup).toBeHidden()
+    }
+  })
+
+  test('pet cards and popup buttons are styled in light and dark mode', async ({ page }) => {
+    const viewButtons = page.locator('.pet-tracker button')
+    await expect(viewButtons).toHaveCount(2)
+    for (let i = 0; i < await viewButtons.count(); i++) {
+      const button = viewButtons.nth(i)
+      await expect(button).toBeVisible()
+      await expect(button).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+      await expect(button).toHaveCSS('color', 'rgb(26, 26, 26)')
+      await expect(button).toHaveCSS('border-radius', '8px')
+      await expect(button).toHaveCSS('padding-top', '10px')
+      await expect(button).toHaveCSS('padding-left', '22px')
+    }
+    await page.locator('[data-test="view-test-pet"]').click()
+    const popup = page.locator('.pet-modal-content')
+    await expect(popup).toBeVisible()
+    const popupButtons = popup.locator('.pet-modal-actions button')
+    await expect(popupButtons).toHaveCount(4)
+    for (let i = 0; i < await popupButtons.count(); i++) {
+      const button = popupButtons.nth(i)
+      await expect(button).toBeVisible()
+      await expect(button).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+      await expect(button).toHaveCSS('color', 'rgb(26, 26, 26)')
+      await expect(button).toHaveCSS('border-radius', '8px')
+      await expect(button).toHaveCSS('padding-top', '10px')
+      await expect(button).toHaveCSS('padding-left', '18px')
+    }
+    await page.getByRole('button', { name: 'Close pet tracker' }).click()
+    await expect(popup).toBeHidden()
+    await page.locator('label[for="dark-mode-toggle"]').click()
+    await expect(page.locator('main.daily-treat-tracker')).toHaveClass(/dark-mode/)
+    for (let i = 0; i < await viewButtons.count(); i++) {
+      const button = viewButtons.nth(i)
+      await expect(button).toHaveCSS('background-color', 'rgb(51, 51, 51)')
+      await expect(button).toHaveCSS('color', 'rgb(242, 242, 242)')
+      await expect(button).toHaveCSS('border-color', 'rgb(85, 85, 85)')
+    }
+    for (let i = 0; i < await popupButtons.count(); i++) {
+      const button = popupButtons.nth(i)
+      await expect(button).toHaveCSS('background-color', 'rgb(51, 51, 51)')
+      await expect(button).toHaveCSS('color', 'rgb(242, 242, 242)')
+      await expect(button).toHaveCSS('border-color', 'rgb(85, 85, 85)')
+    }
+  })
+
+  test('pet tracker popup has a centered position and blurred background', async ({ page }) => {
+    await page.locator('[data-test="view-test-pet"]').click()
+    const overlay = page.locator('.pet-modal-overlay')
+    const popup = page.locator('.pet-modal-content')
+    await expect(overlay).toBeVisible()
+    await expect(popup).toBeVisible()
+    await expect(overlay).toHaveCSS('position', 'fixed')
+    await expect(overlay).toHaveCSS('backdrop-filter', 'blur(6px)')
+    const overlayBox = await overlay.boundingBox()
+    const popupBox = await popup.boundingBox()
+    expect(overlayBox).not.toBeNull()
+    expect(popupBox).not.toBeNull()
+    const overlayCenterX = overlayBox!.x + overlayBox!.width / 2
+    const popupCenterX = popupBox!.x + popupBox!.width / 2
+    expect(Math.abs(overlayCenterX - popupCenterX)).toBeLessThan(12)
+    const overlayCenterY = overlayBox!.y + overlayBox!.height / 2
+    const popupCenterY = popupBox!.y + popupBox!.height / 2
+    expect(Math.abs(overlayCenterY - popupCenterY)).toBeLessThan(12)
+  })
+
+  test('treat buttons work correctly inside the pet popup', async ({ page }) => {
+    await page.locator('[data-test="view-test-pet"]').click()
+    const popup = page.locator('.pet-modal-content')
+    const logButton = popup.locator('[data-test="log-test-pet"]')
+    const removeLogButton = popup.locator('[data-test="remove-log-test-pet"]')
+    const resetButton = popup.locator('[data-test="reset-test-pet"]')
+    await expect(popup).toBeVisible()
+    await expect(popup).toContainText('0 of 5 treats given today.')
+    await logButton.click()
+    await expect(popup).toContainText('1 of 5 treats given today.')
+    await logButton.click()
+    await expect(popup).toContainText('2 of 5 treats given today.')
+    await logButton.click()
+    await expect(popup).toContainText('3 of 5 treats given today.')
+    await logButton.click()
+    await expect(popup).toContainText('4 of 5 treats given today.')
+    await logButton.click()
+    await expect(popup).toContainText('5 of 5 treats given today.')
+    await expect(logButton).toBeDisabled()
+    await expect(logButton).toHaveCSS('opacity', '0.5')
+    await expect(logButton).toHaveCSS('cursor', 'not-allowed')
+    await removeLogButton.click()
+    await expect(popup).toContainText('4 of 5 treats given today.')
+    await expect(logButton).toBeEnabled()
+    await resetButton.click()
+    await expect(popup).toContainText('0 of 5 treats given today.')
+  })
 })
