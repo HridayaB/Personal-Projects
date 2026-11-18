@@ -495,7 +495,7 @@
   label :deep(svg) {
     position: absolute;
     width: 25px;
-    height: 120px;
+    height: 25px;
     top: 50%;
     transform: translate(-50%, -50%);
     z-index: 10;
