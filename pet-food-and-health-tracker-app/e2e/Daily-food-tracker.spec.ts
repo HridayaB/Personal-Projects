@@ -40,6 +40,7 @@ test.describe('Daily Food Tracker CSS & Layout', () => {
     const darkModeToggle = page.locator('#dark-mode-toggle')
     const darkModeLabel = page.locator('label[for="dark-mode-toggle"]')
     const main = page.locator('main.daily-food-tracker')
+    await page.addStyleTag({content: `main.daily-food-tracker { transition: none !important; }`})
     await darkModeLabel.check()
     await expect(darkModeToggle).toBeChecked()
     await expect(main).toHaveClass(/dark-mode/)
