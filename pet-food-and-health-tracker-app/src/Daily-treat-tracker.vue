@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted, nextTick } from 'vue'
   import { getPets, deletePet, type Pet } from './pets'
   import { isDarkMode } from './darkMode'
   import Icons from './Icons.vue'
@@ -27,10 +27,13 @@
   const remainingOf = (p: TrackedPet) => Math.max(limitOf(p) - p.treatCount, 0)
   const progressOf = (p: TrackedPet) => limitOf(p) ? `${p.treatCount} of ${limitOf(p)} treats given today.` : 'No treat limit set.'
 
-  const logTreat = (p: TrackedPet) => {
+  const logTreat = async (p: TrackedPet) => {
     if (limitOf(p) && p.treatCount >= limitOf(p)) return
     p.treatCount += 1
     localStorage.setItem(logKeyFor(p.id), String(p.treatCount))
+    if (limitOf(p) && p.treatCount === limitOf(p)) {
+      await triggerConfetti()
+    }
   }
 
   const removeLog = (p: TrackedPet) => {
@@ -82,6 +85,31 @@
 
   const closePetPopup = () => {
     selectedPet.value = null
+  }
+
+  const showConfetti = ref(false)
+  const confettiPieces = ref<ConfettiPiece[]>([])
+
+  interface ConfettiPiece {
+    x: number
+    y: number
+    rotation: number
+    delay: number
+  }
+
+  const triggerConfetti = async () => {
+    confettiPieces.value = Array.from({ length: 24 }, () => ({
+      x: (Math.random() - 0.5) * 500,
+      y: -Math.random() * 300 - 100,
+      rotation: Math.random() * 720 - 360,
+      delay: Math.random() * 0.15,
+    }))
+    showConfetti.value = false
+    await nextTick()
+    showConfetti.value = true
+    setTimeout(() => {
+      showConfetti.value = false
+    }, 1200)
   }
 </script>
 
@@ -196,11 +224,17 @@
           <p>Today's date: {{ todayDate }}</p>
           <p>{{ progressOf(selectedPet) }}</p>
           <p v-if="limitOf(selectedPet)">Remaining treats for the day: {{ remainingOf(selectedPet) }}</p>
+          <div class="treat-tracker-progress-container">
+            <progress class="treat-progress-bar" :max="limitOf(selectedPet)" :value="selectedPet.treatCount" :aria-label="`${selectedPet.name} daily treat progress`"></progress>
+          </div>
           <div class="pet-modal-actions">
             <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logTreat(selectedPet)">Log treat for {{ selectedPet.name }}</button>
             <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove treat log</button>
             <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset treat count</button>
             <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
+          </div>
+          <div v-if="showConfetti" class="confetti-container" aria-hidden="true">
+            <span v-for="(piece, index) in confettiPieces" :key="index" class="confetti-piece" :style="{ '--x': `${piece.x}px`, '--y': `${piece.y}px`, '--rotation': `${piece.rotation}deg`, '--delay': `${piece.delay}s` }"></span>
           </div>
         </div>
       </div>
@@ -872,6 +906,101 @@
     .remove-pet-popup {
       animation: none;
       transition: none;
+    }
+  }
+
+  .treat-progress-bar {
+    width: 100%;
+    max-width: 450px;
+    height: 10px;
+    margin: 1.25rem auto;
+    display: block;
+    overflow: hidden;
+    border-radius: 10px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #dce5d9;
+  }
+
+  .treat-progress-bar::-webkit-progress-bar {
+    background-color: #dce5d9;
+    border-radius: 10px;
+  }
+
+  .treat-progress-bar::-webkit-progress-value {
+    background-color: #529568;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .treat-progress-bar::-moz-progress-bar {
+    background-color: #529568;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .daily-treat-tracker.dark-mode .treat-progress-bar {
+    background-color: #435448;
+  }
+
+  .daily-treat-tracker.dark-mode .treat-progress-bar::-webkit-progress-bar {
+    background-color: #435448;
+  }
+
+  .daily-treat-tracker.dark-mode .treat-progress-bar::-webkit-progress-value {
+    background-color: #77b783;
+  }
+
+  .daily-treat-tracker.dark-mode .treat-progress-bar::-moz-progress-bar {
+    background-color: #77b783;
+  }
+
+  .confetti-container {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    background-color: #529568;
+    opacity: 0;
+    animation: confetti-blast 1.1s ease-out forwards;
+    animation-delay: var(--delay);
+  }
+
+  .confetti-piece:nth-child(3n) {
+    background-color: #f2c94c;
+  }
+
+  .confetti-piece:nth-child(3n + 1) {
+    background-color: #993638;
+  }
+
+  .confetti-piece:nth-child(3n + 2) {
+    background-color: #77b783;
+  }
+
+  @keyframes confetti-blast {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0) rotate(0deg);
+    }
+
+    70% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(var(--x), var(--y)) rotate(var(--rotation));
     }
   }
 </style>
