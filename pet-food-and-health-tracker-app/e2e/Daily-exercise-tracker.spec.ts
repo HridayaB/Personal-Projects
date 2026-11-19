@@ -154,8 +154,8 @@ test.describe('Daily Exercise Tracker CSS & Layout', () => {
     await page.locator('[data-test="view-test-pet"]').click()
     const popup = page.locator('.pet-modal-content')
     await expect(popup).toBeVisible()
-    const popupButtons = popup.locator('.pet-modal-actions button')
-    await expect(popupButtons).toHaveCount(4)
+    const popupButtons = popup.locator('.exercise-log-buttons button, .reset-exercise-count-button button')
+    await expect(popupButtons).toHaveCount(3)
     for (let i = 0; i < await popupButtons.count(); i++) {
       const button = popupButtons.nth(i)
       await expect(button).toBeVisible()
@@ -165,6 +165,13 @@ test.describe('Daily Exercise Tracker CSS & Layout', () => {
       await expect(button).toHaveCSS('padding-top', '10px')
       await expect(button).toHaveCSS('padding-left', '18px')
     }
+    const removePetButton = popup.locator('.remove-pet-button')
+    await expect(removePetButton).toBeVisible()
+    await expect(removePetButton).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(removePetButton).toHaveCSS('color', 'rgb(153, 54, 56)')
+    await expect(removePetButton).toHaveCSS('border-radius', '8px')
+    await expect(removePetButton).toHaveCSS('padding-top', '10px')
+    await expect(removePetButton).toHaveCSS('padding-left', '18px')
     await page.getByRole('button', { name: 'Close pet tracker' }).click()
     await expect(popup).toBeHidden()
     await page.locator('label[for="dark-mode-toggle"]').click()
@@ -175,12 +182,21 @@ test.describe('Daily Exercise Tracker CSS & Layout', () => {
       await expect(button).toHaveCSS('color', 'rgb(242, 242, 242)')
       await expect(button).toHaveCSS('border-color', 'rgb(85, 85, 85)')
     }
-    for (let i = 0; i < await popupButtons.count(); i++) {
-      const button = popupButtons.nth(i)
+    await page.locator('[data-test="view-test-pet"]').click()
+    await expect(popup).toBeVisible()
+    const darkPopupButtons = popup.locator('.exercise-log-buttons button, .reset-exercise-count-button button')
+    await expect(darkPopupButtons).toHaveCount(3)
+    for (let i = 0; i < await darkPopupButtons.count(); i++) {
+      const button = darkPopupButtons.nth(i)
       await expect(button).toHaveCSS('background-color', 'rgb(51, 51, 51)')
       await expect(button).toHaveCSS('color', 'rgb(242, 242, 242)')
       await expect(button).toHaveCSS('border-color', 'rgb(85, 85, 85)')
     }
+    const darkRemovePetButton = popup.locator('.remove-pet-button')
+    await expect(darkRemovePetButton).toBeVisible()
+    await expect(darkRemovePetButton).toHaveCSS('background-color', 'rgb(51, 51, 51)')
+    await expect(darkRemovePetButton).toHaveCSS('color', 'rgb(242, 242, 242)')
+    await expect(darkRemovePetButton).toHaveCSS('border-color', 'rgb(85, 85, 85)')
   })
 
   test('pet tracker popup has a centered position and blurred background', async ({ page }) => {
@@ -223,5 +239,44 @@ test.describe('Daily Exercise Tracker CSS & Layout', () => {
     await expect(logButton).toBeEnabled()
     await resetButton.click()
     await expect(popup).toContainText('0 of 2 exercise sessions done today.')
+  })
+
+  test('checks that the progress bar exists', async ({ page }) => {
+    await page.locator('[data-test="view-test-pet"]').click()
+    const popup = page.locator('.pet-modal-content')
+    const progressBar = popup.locator('progress.exercise-progress-bar')
+    await expect(progressBar).toBeVisible()
+    await expect(progressBar).toHaveAttribute('max', '2')
+    await expect(progressBar).toHaveAttribute('value', '0')
+    await expect(progressBar).toHaveAttribute('aria-label', 'Buddy daily exercise progress')
+  })
+
+  test('checks that the progress bar works correctly', async ({ page }) => {
+    await page.locator('[data-test="view-test-pet"]').click()
+    const popup = page.locator('.pet-modal-content')
+    const progressBar = popup.locator('progress.exercise-progress-bar')
+    const logButton = popup.locator('[data-test="log-test-pet"]')
+    await expect(progressBar).toHaveAttribute('value', '0')
+    await logButton.click()
+    await expect(progressBar).toHaveAttribute('value', '1')
+    await logButton.click()
+    await expect(progressBar).toHaveAttribute('value', '2')
+    await expect(progressBar).toHaveAttribute('aria-label', 'Buddy daily exercise progress')
+  })
+
+  test('checks if progress bar goes back properly',async ({ page }) => {
+    await page.locator('[data-test="view-test-pet"]').click()
+    const popup = page.locator('.pet-modal-content')
+    const progressBar = popup.locator('progress.exercise-progress-bar')
+    const logButton = popup.locator('[data-test="log-test-pet"]')
+    const removeLogButton = popup.locator('[data-test="remove-log-test-pet"]')
+    const resetButton = popup.locator('[data-test="reset-test-pet"]')
+    await logButton.click()
+    await logButton.click()
+    await expect(progressBar).toHaveAttribute('value', '2')
+    await removeLogButton.click()
+    await expect(progressBar).toHaveAttribute('value', '1')
+    await resetButton.click()
+    await expect(progressBar).toHaveAttribute('value', '0')
   })
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted } from 'vue'
+  import { ref, onMounted, onUnmounted, nextTick } from 'vue'
   import { getPets, deletePet, type Pet } from './pets'
   import { isDarkMode } from './darkMode'
   import Icons from './Icons.vue'
@@ -59,13 +59,17 @@
     localStorage.setItem(`exerciseBreakdown:${p.id}:${todayDate}`, JSON.stringify(p.exerciseBreakdown))
     localStorage.setItem(`exerciseHistory:${p.id}:${todayDate}`, JSON.stringify(p.exerciseHistory))
   }
-  const logExercise = (p: TrackedPet) => {
+
+  const logExercise = async (p: TrackedPet) => {
     if (limitOf(p) && p.exerciseCount >= limitOf(p)) return
     const label = selectedLabels.value[p.id] || 'Other'
     p.exerciseCount += 1
     p.exerciseHistory.push(label)
     p.exerciseBreakdown[label] = (p.exerciseBreakdown[label] || 0) + 1
     localStorage.setItem(logKeyFor(p.id), String(p.exerciseCount))
+    if (limitOf(p) && p.exerciseCount === limitOf(p)) {
+      await triggerConfetti()
+    }
     saveExerciseBreakdown(p)
   }
 
@@ -184,6 +188,31 @@
   const selectLabel = (pet: TrackedPet, label: string) => {
     selectedLabels.value[pet.id] = selectedLabels.value[pet.id] === label ? '' : label
   }
+
+  const showConfetti = ref(false)
+  const confettiPieces = ref<ConfettiPiece[]>([])
+
+  interface ConfettiPiece {
+    x: number
+    y: number
+    rotation: number
+    delay: number
+  }
+
+  const triggerConfetti = async () => {
+    confettiPieces.value = Array.from({ length: 24 }, () => ({
+      x: (Math.random() - 0.5) * 500,
+      y: -Math.random() * 300 - 100,
+      rotation: Math.random() * 720 - 360,
+      delay: Math.random() * 0.15,
+    }))
+    showConfetti.value = false
+    await nextTick()
+    showConfetti.value = true
+    setTimeout(() => {
+      showConfetti.value = false
+    }, 1200)
+  }
 </script>
 
 <template>
@@ -297,18 +326,8 @@
           <p>Today's date: {{ todayDate }}</p>
           <p>{{ progressOf(selectedPet) }}</p>
           <p v-if="limitOf(selectedPet)">Remaining exercises for the day: {{ remainingOf(selectedPet) }}</p>
-          <div class="pet-modal-actions">
-            <div v-if="Object.keys(selectedPet.exerciseBreakdown).length" class="exercise-breakdown">
-            <h4>Today's Exercise Breakdown</h4>
-            <div v-for="(count, label) in selectedPet.exerciseBreakdown" :key="label" class="exercise-breakdown-item">
-              <div class="exercise-breakdown-heading">
-                <span>{{ label }}</span>
-                <span>{{ count }} completed</span>
-              </div>
-              <div class="exercise-breakdown-bar">
-                <div class="exercise-breakdown-progress" :style="{width: `${selectedPet.exerciseCount ? (count / selectedPet.exerciseCount) * 100 : 0}%`}"></div>
-              </div>
-            </div>
+          <div class="exercise-tracker-progress-container">
+            <progress class="exercise-progress-bar" :max="limitOf(selectedPet)" :value="selectedPet.exerciseCount" :aria-label="`${selectedPet.name} daily exercise progress`"></progress>
           </div>
           <div v-if="selectedPet.exerciseLabels.length" class="exercise-types-section">
             <p class="exercise-types-title">Choose an exercise type:</p>
@@ -321,10 +340,25 @@
             <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove exercise</button>
           </div>
           <div class="reset-exercise-count-button">
-            <button  :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset exercise count</button>
+            <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset exercise count</button>
           </div>
-          <div>
-            <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
+          <div class="remove-pet-button-container">
+            <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)"> Remove {{ selectedPet.name }}</button>
+          </div>
+          <div v-if="Object.keys(selectedPet.exerciseBreakdown).length" class="exercise-breakdown">
+            <h4>Today's Exercise Breakdown</h4>
+            <div v-for="(count, label) in selectedPet.exerciseBreakdown" :key="label" class="exercise-breakdown-item">
+              <div class="exercise-breakdown-heading">
+                <span>{{ label }}</span>
+                <span>{{ count }} completed</span>
+              </div>
+              <div class="exercise-breakdown-bar">
+                <div class="exercise-breakdown-progress" :style="{width: `${selectedPet.exerciseCount ? (count / selectedPet.exerciseCount) * 100 : 0}%`}"></div>
+              </div>
+            </div>
+          </div>
+          <div v-if="showConfetti" class="confetti-container" aria-hidden="true">
+            <span v-for="(piece, index) in confettiPieces" :key="index" class="confetti-piece" :style="{ '--x': `${piece.x}px`, '--y': `${piece.y}px`, '--rotation': `${piece.rotation}deg`, '--delay': `${piece.delay}s` }"></span>
           </div>
 
           <div class="exercise-timer-section">
@@ -368,7 +402,6 @@
           </div>
         </div>
       </div>
-    </div>
     </div>
 
     <div v-if="showRemovePetPopup" class="remove-pet-overlay">
@@ -874,27 +907,21 @@
     color: #993638;
   }
 
-  .pet-modal-actions {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 25px;
-  }
-
   .exercise-log-buttons {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
+    margin-top: 12px;
   }
 
   .exercise-type-buttons button.selected {
     animation: exercise-type-selected 0.25s ease forwards;
   }
 
-  .pet-modal-content .pet-modal-actions button {
+  .exercise-log-buttons button,
+  .reset-exercise-count-button button,
+  .remove-pet-button-container button {
     padding: 10px 18px;
     background-color: #ffffff;
     color: #1a1a1a;
@@ -911,15 +938,34 @@
       box-shadow 0.2s ease;
   }
 
-  .pet-modal-content .pet-modal-actions button:hover:not(:disabled) {
+  .exercise-log-buttons button:hover:not(:disabled),
+  .reset-exercise-count-button button:hover:not(:disabled),
+  .remove-pet-button-container button:hover:not(:disabled) {
     transform: translateY(-2px);
     border-color: #993638;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   }
 
-  .pet-modal-content .pet-modal-actions button:disabled {
+  .exercise-log-buttons button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .reset-exercise-count-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .remove-pet-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .remove-pet-button-container .remove-pet-button {
+    border-color: #993638;
+    color: #993638;
   }
 
   .pet-modal-content .remove-pet-button {
@@ -983,23 +1029,30 @@
   }
 
   .dark-mode .pet-tracker .view-pet-button,
-  .dark-mode .pet-modal-actions button,
+  .dark-mode .exercise-log-buttons button,
+  .dark-mode .reset-exercise-count-button button,
+  .dark-mode .remove-pet-button-container button,
   .dark-mode .remove-pet-popup button {
     background-color: #333333;
     color: #f2f2f2;
     border-color: #555555;
   }
 
+  .dark-mode .remove-pet-button-container .remove-pet-button {
+    color: #f2f2f2;
+  }
+
   .dark-mode .pet-tracker .view-pet-button:hover,
-  .dark-mode .pet-modal-actions button:hover:not(:disabled),
+  .dark-mode .exercise-log-buttons button:hover:not(:disabled),
+  .dark-mode .remove-pet-button-container button:hover:not(:disabled),
   .dark-mode .remove-pet-popup button:hover {
     background-color: #3d3d3d;
     border-color: #993638;
   }
 
   .dark-mode .pet-modal-content .remove-pet-button {
-    color: #ff9999;
-    border-color: #993638;
+    color: #f2f2f2;
+    border-color: #555555;
   }
 
   @keyframes pet-modal-appear {
@@ -1029,11 +1082,15 @@
       font-size: 1.25rem;
     }
 
-    .pet-modal-actions {
+    .exercise-log-buttons,
+    .remove-pet-button-container,
+    .remove-pet-button {
       flex-direction: column;
     }
 
-    .pet-modal-actions button {
+    .exercise-log-buttons button,
+    .remove-pet-button-container button,
+    .remove-pet-button button {
       width: 100%;
     }
   }
@@ -1113,22 +1170,41 @@
   }
 
   .exercise-types-title {
-    margin-bottom: 0.75rem;
+    margin: 0 0 10px;
+    text-align: center;
+    font-size: 0.95rem;
     font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .dark-mode .exercise-types-title {
+    color: #f2f2f2;
+  }
+
+  .exercise-type-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
   }
 
   .exercise-type-buttons button {
-    position: relative;
-    overflow: hidden;
-    transition:
-      transform 0.2s ease,
-      background-color 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.2s ease;
+    padding: 8px 14px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
   }
 
   .exercise-type-buttons button:hover {
     transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   }
 
   .exercise-type-buttons button.selected {
@@ -1137,9 +1213,27 @@
     border-color: #3f7d52;
     font-weight: 700;
     transform: translateY(-2px) scale(1.04);
-    box-shadow:
-      0 0 0 3px rgba(82, 149, 104, 0.2),
-      0 4px 10px rgba(82, 149, 104, 0.3);
+    box-shadow: 0 0 0 3px rgba(82, 149, 104, 0.2), 0 4px 10px rgba(82, 149, 104, 0.3);
+    animation: exercise-type-selected 0.25s ease-out;
+  }
+
+  .dark-mode .exercise-type-buttons button {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #555555;
+  }
+
+  .dark-mode .exercise-type-buttons button:hover {
+    border-color: #c96a6c;
+  }
+
+  .dark-mode .exercise-type-buttons button.selected {
+    background-color: #529568;
+    color: #f2f2f2;
+    border-color: #3f7d52;
+    font-weight: 700;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 0 0 3px rgba(82, 149, 104, 0.2), 0 4px 10px rgba(82, 149, 104, 0.3);
     animation: exercise-type-selected 0.25s ease-out;
   }
 
@@ -1525,5 +1619,100 @@
 
   .daily-exercise-tracker.dark-mode .exercise-breakdown-progress {
     background-color: #77b783;
+  }
+
+  .exercise-progress-bar {
+    width: 100%;
+    max-width: 450px;
+    height: 10px;
+    margin: 1.25rem auto;
+    display: block;
+    overflow: hidden;
+    border-radius: 10px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #dce5d9;
+  }
+
+  .exercise-progress-bar::-webkit-progress-bar {
+    background-color: #dce5d9;
+    border-radius: 10px;
+  }
+
+  .exercise-progress-bar::-webkit-progress-value {
+    background-color: #529568;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .exercise-progress-bar::-moz-progress-bar {
+    background-color: #529568;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .daily-exercise-tracker.dark-mode .exercise-progress-bar {
+    background-color: #435448;
+  }
+
+  .daily-exercise-tracker.dark-mode .exercise-progress-bar::-webkit-progress-bar {
+    background-color: #435448;
+  }
+
+  .daily-exercise-tracker.dark-mode .exercise-progress-bar::-webkit-progress-value {
+    background-color: #77b783;
+  }
+
+  .daily-exercise-tracker.dark-mode .exercise-progress-bar::-moz-progress-bar {
+    background-color: #77b783;
+  }
+
+  .confetti-container {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    background-color: #529568;
+    opacity: 0;
+    animation: confetti-blast 1.1s ease-out forwards;
+    animation-delay: var(--delay);
+  }
+
+  .confetti-piece:nth-child(3n) {
+    background-color: #f2c94c;
+  }
+
+  .confetti-piece:nth-child(3n + 1) {
+    background-color: #993638;
+  }
+
+  .confetti-piece:nth-child(3n + 2) {
+    background-color: #77b783;
+  }
+
+  @keyframes confetti-blast {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0) rotate(0deg);
+    }
+
+    70% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(var(--x), var(--y)) rotate(var(--rotation));
+    }
   }
 </style>
