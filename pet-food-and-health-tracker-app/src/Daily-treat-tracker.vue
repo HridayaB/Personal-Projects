@@ -3,10 +3,13 @@
   import { getPets, deletePet, type Pet } from './pets'
   import { isDarkMode } from './darkMode'
   import Icons from './Icons.vue'
+  import { useRouter } from 'vue-router'
 
   interface TrackedPet extends Pet {
     treatCount: number
   }
+
+  const router = useRouter()
 
   const trackedPets = ref<TrackedPet[]>([])
   const selectedPet = ref<TrackedPet | null>(null)
@@ -17,6 +20,7 @@
   const logKeyFor = (petId: string) => `treatLog:${petId}:${todayDate}`
 
   onMounted(() => {
+    document.title = 'Daily Treat Tracker'
     trackedPets.value = getPets().map(pet => {
       const saved = localStorage.getItem(logKeyFor(pet.id))
       return { ...pet, treatCount: saved ? Number(saved) : 0 }
@@ -111,6 +115,31 @@
       showConfetti.value = false
     }, 1200)
   }
+
+  const navigateAfterAnimation = (event: MouseEvent, destination: string) => {
+    const link = event.currentTarget as HTMLElement
+    const container = link.parentElement
+    if (link.classList.contains('is-animating')) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      router.push(destination)
+      return
+    }
+    const isTouchDevice = window.matchMedia(
+      '(hover: none), (pointer: coarse)'
+    ).matches
+    if (!isTouchDevice) {
+      router.push(destination)
+      return
+    }
+    const finishAnimation = (animationEvent: AnimationEvent) => {
+      if (animationEvent.target !== link) return
+      link.removeEventListener('animationend', finishAnimation)
+      router.push(destination)
+    }
+    link.addEventListener('animationend', finishAnimation)
+    container?.classList.add('is-animating')
+    link.classList.add('is-animating')
+  }
 </script>
 
 <template>
@@ -122,14 +151,14 @@
     </label>
     <div v-if="trackedPets.length === 0" class="setup-prompt">
       <p>
-        It looks like you haven't set up your pet's information yet. <router-link to="/get-started">You can get started here.</router-link>
+        It looks like you haven't set up your pet's information yet. <span class="get-started-link-container"><router-link to="/get-started" id="get-started-link" @click.prevent="navigateAfterAnimation($event, '/get-started')">You can get started here.</router-link></span>
       </p>
     </div>
 
     <div v-else>
       <div class="tracker-links">
         <div class="home-page-container">
-          <router-link to="/" id="home-page-link">
+          <router-link to="/" id="home-page-link" @click.prevent="navigateAfterAnimation($event, '/')">
             <span>Home</span>
             <Icons icon="home-page-1" />
           </router-link>
@@ -142,7 +171,7 @@
           </div>
         </div>
         <div class="get-started-container">
-          <router-link to="/get-started" id="get-started-link">
+          <router-link to="/get-started" id="get-started-link" @click.prevent="navigateAfterAnimation($event, '/get-started')">
             <span>Get Started</span>
             <Icons icon="get-started-1" />
           </router-link>
@@ -155,7 +184,7 @@
           </div>
         </div>
         <div class="food-tracker-container">
-          <router-link to='/daily-food-tracker' id="daily-food-tracker-link">
+          <router-link to='/daily-food-tracker' id="daily-food-tracker-link" @click.prevent="navigateAfterAnimation($event, '/daily-food-tracker')">
             <span>Daily Food Tracker</span>
             <Icons icon="pet-food-1" />
           </router-link>
@@ -168,7 +197,7 @@
           </div>
         </div>
         <div class="exercise-tracker-container">
-          <router-link to='/daily-exercise-tracker' id="daily-exercise-tracker-link">
+          <router-link to='/daily-exercise-tracker' id="daily-exercise-tracker-link" @click.prevent="navigateAfterAnimation($event, '/daily-exercise-tracker')">
             <span>Daily Exercise Tracker</span>
             <Icons icon="pet-exercise-1" />
           </router-link>
@@ -181,7 +210,7 @@
           </div>
         </div>
         <div class="medicine-tracker-container">
-          <router-link to="/daily-medicine-tracker" id="daily-medicine-tracker-link">
+          <router-link to="/daily-medicine-tracker" id="daily-medicine-tracker-link" @click.prevent="navigateAfterAnimation($event, '/daily-medicine-tracker')">
             <span>Daily Medicine Tracker</span>
             <Icons icon="pet-medicine-1" />
           </router-link>
@@ -194,7 +223,7 @@
           </div>
         </div>
         <div class="potty-tracker-container">
-          <router-link to="/daily-potty-tracker" id="daily-potty-tracker-link">
+          <router-link to="/daily-potty-tracker" id="daily-potty-tracker-link" @click.prevent="navigateAfterAnimation($event, '/daily-potty-tracker')">
             <span>Daily Potty Tracker</span>
             <Icons icon="pet-potty-1" />
           </router-link>
@@ -228,10 +257,16 @@
             <progress class="treat-progress-bar" :max="limitOf(selectedPet)" :value="selectedPet.treatCount" :aria-label="`${selectedPet.name} daily treat progress`"></progress>
           </div>
           <div class="pet-modal-actions">
-            <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logTreat(selectedPet)">Log treat for {{ selectedPet.name }}</button>
-            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove last treat given</button>
-            <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset treat count</button>
-            <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
+            <div class="treat-log-buttons">
+              <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logTreat(selectedPet)">Log treat for {{ selectedPet.name }}</button>
+              <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove last treat given</button>
+            </div>
+            <div class="reset-treat-count-button">
+              <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset treat count</button>
+            </div>
+            <div class="remove-pet-button-container">
+              <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
+            </div>
           </div>
           <div v-if="showConfetti" class="confetti-container" aria-hidden="true">
             <span v-for="(piece, index) in confettiPieces" :key="index" class="confetti-piece" :style="{ '--x': `${piece.x}px`, '--y': `${piece.y}px`, '--rotation': `${piece.rotation}deg`, '--delay': `${piece.delay}s` }"></span>
@@ -496,12 +531,12 @@
     --food-rotation: -15deg;
   }
 
-  .home-page-container:hover .home-page-icons :deep(svg.home-page-2),
-  .get-started-container:hover .get-started-icons :deep(svg.get-started-2),
-  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-2),
-  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-2),
-  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-2),
-  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-2) {
+  .home-page-container:is(:hover, .is-animating) .home-page-icons :deep(svg.home-page-2),
+  .get-started-container:is(:hover, .is-animating) .get-started-icons :deep(svg.get-started-2),
+  .food-tracker-container:is(:hover, .is-animating) .pet-food-icons :deep(svg.pet-food-2),
+  .exercise-tracker-container:is(:hover, .is-animating) .pet-exercise-icons :deep(svg.pet-exercise-2),
+  .medicine-tracker-container:is(:hover, .is-animating) .pet-medicine-icons :deep(svg.pet-medicine-2),
+  .potty-tracker-container:is(:hover, .is-animating) .pet-potty-icons :deep(svg.pet-potty-2) {
     left: 10%;
     top: -40px;
     opacity: 1;
@@ -519,12 +554,12 @@
     --food-rotation: -8deg;
   }
 
-  .home-page-container:hover .home-page-icons :deep(svg.home-page-3),
-  .get-started-container:hover .get-started-icons :deep(svg.get-started-3),
-  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-3),
-  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-3),
-  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-3),
-  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-3) {
+  .home-page-container:is(:hover, .is-animating) .home-page-icons :deep(svg.home-page-3),
+  .get-started-container:is(:hover, .is-animating) .get-started-icons :deep(svg.get-started-3),
+  .food-tracker-container:is(:hover, .is-animating) .pet-food-icons :deep(svg.pet-food-3),
+  .exercise-tracker-container:is(:hover, .is-animating) .pet-exercise-icons :deep(svg.pet-exercise-3),
+  .medicine-tracker-container:is(:hover, .is-animating) .pet-medicine-icons :deep(svg.pet-medicine-3),
+  .potty-tracker-container:is(:hover, .is-animating) .pet-potty-icons :deep(svg.pet-potty-3) {
     left: 30%;
     top: -40px;
     opacity: 1;
@@ -542,12 +577,12 @@
     --food-rotation: 0deg;
   }
 
-  .home-page-container:hover .home-page-icons :deep(svg.home-page-4),
-  .get-started-container:hover .get-started-icons :deep(svg.get-started-4),
-  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-4),
-  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-4),
-  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-4),
-  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-4) {
+  .home-page-container:is(:hover, .is-animating) .home-page-icons :deep(svg.home-page-4),
+  .get-started-container:is(:hover, .is-animating) .get-started-icons :deep(svg.get-started-4),
+  .food-tracker-container:is(:hover, .is-animating) .pet-food-icons :deep(svg.pet-food-4),
+  .exercise-tracker-container:is(:hover, .is-animating) .pet-exercise-icons :deep(svg.pet-exercise-4),
+  .medicine-tracker-container:is(:hover, .is-animating) .pet-medicine-icons :deep(svg.pet-medicine-4),
+  .potty-tracker-container:is(:hover, .is-animating) .pet-potty-icons :deep(svg.pet-potty-4) {
     left: 50%;
     top: -40px;
     opacity: 1;
@@ -565,12 +600,12 @@
     --food-rotation: 8deg;
   }
 
-  .home-page-container:hover .home-page-icons :deep(svg.home-page-5),
-  .get-started-container:hover .get-started-icons :deep(svg.get-started-5),
-  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-5),
-  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-5),
-  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-5),
-  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-5) {
+  .home-page-container:is(:hover, .is-animating) .home-page-icons :deep(svg.home-page-5),
+  .get-started-container:is(:hover, .is-animating) .get-started-icons :deep(svg.get-started-5),
+  .food-tracker-container:is(:hover, .is-animating) .pet-food-icons :deep(svg.pet-food-5),
+  .exercise-tracker-container:is(:hover, .is-animating) .pet-exercise-icons :deep(svg.pet-exercise-5),
+  .medicine-tracker-container:is(:hover, .is-animating) .pet-medicine-icons :deep(svg.pet-medicine-5),
+  .potty-tracker-container:is(:hover, .is-animating) .pet-potty-icons :deep(svg.pet-potty-5) {
     left: 70%;
     top: -40px;
     opacity: 1;
@@ -588,17 +623,43 @@
     --food-rotation: 15deg;
   }
 
-  .home-page-container:hover .home-page-icons :deep(svg.home-page-6),
-  .get-started-container:hover .get-started-icons :deep(svg.get-started-6),
-  .food-tracker-container:hover .pet-food-icons :deep(svg.pet-food-6),
-  .exercise-tracker-container:hover .pet-exercise-icons :deep(svg.pet-exercise-6),
-  .medicine-tracker-container:hover .pet-medicine-icons :deep(svg.pet-medicine-6),
-  .potty-tracker-container:hover .pet-potty-icons :deep(svg.pet-potty-6) {
+  .home-page-container:is(:hover, .is-animating) .home-page-icons :deep(svg.home-page-6),
+  .get-started-container:is(:hover, .is-animating) .get-started-icons :deep(svg.get-started-6),
+  .food-tracker-container:is(:hover, .is-animating) .pet-food-icons :deep(svg.pet-food-6),
+  .exercise-tracker-container:is(:hover, .is-animating) .pet-exercise-icons :deep(svg.pet-exercise-6),
+  .medicine-tracker-container:is(:hover, .is-animating) .pet-medicine-icons :deep(svg.pet-medicine-6),
+  .potty-tracker-container:is(:hover, .is-animating) .pet-potty-icons :deep(svg.pet-potty-6) {
     left: 90%;
     top: -40px;
     opacity: 1;
     transform: translate(-50%, 0) scale(1) rotate(15deg);
     transition-delay: 0.28s;
+  }
+
+  .tracker-links > div.is-animating > a {
+    animation: tracker-link-tap 0.8s ease forwards;
+  }
+
+  @keyframes tracker-link-tap {
+    0% {
+      transform: translateY(0) scale(1);
+    }
+
+    35% {
+      transform: translateY(-5px) scale(1.05);
+    }
+
+    70% {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    100% {
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .get-started-link-container.is-animating #get-started-link {
+    animation: tracker-link-tap 0.8s ease forwards;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -609,6 +670,9 @@
     .pet-medicine-icons :deep(svg),
     .pet-potty-icons :deep(svg) {
       transition: none;
+    }
+    .tracker-links > div.is-animating > a {
+      animation: none;
     }
   }
 
@@ -667,11 +731,7 @@
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition:
-      transform 0.2s ease,
-      background-color 0.3s ease,
-      border-color 0.3s ease,
-      box-shadow 0.2s ease;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
   }
 
   .pet-tracker .view-pet-button:hover {
@@ -741,8 +801,8 @@
 
   .pet-modal-actions {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     gap: 12px;
     margin-top: 25px;
   }
@@ -757,11 +817,7 @@
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition:
-      transform 0.2s ease,
-      background-color 0.3s ease,
-      border-color 0.3s ease,
-      box-shadow 0.2s ease;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
   }
 
   .pet-modal-content .pet-modal-actions button:hover:not(:disabled) {
@@ -773,6 +829,76 @@
   .pet-modal-content .pet-modal-actions button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .treat-log-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .treat-type-buttons button.selected {
+    animation: exercise-type-selected 0.25s ease forwards;
+  }
+
+  .treat-log-buttons button,
+  .reset-treat-count-button button,
+  .remove-pet-button-container button {
+    padding: 10px 18px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+  }
+
+  .treat-log-buttons button:hover:not(:disabled),
+  .reset-treat-count-button button:hover:not(:disabled),
+  .remove-pet-button-container button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .treat-log-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .reset-treat-count-button,
+  .remove-pet-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 0;
+  }
+
+  .remove-pet-button-container .remove-pet-button {
+    border-color: #993638;
+    color: #993638;
+  }
+
+  .dark-mode .pet-tracker .view-pet-button,
+  .dark-mode .feeding-log-buttons button,
+  .dark-mode .reset-treat-count-button button,
+  .dark-mode .remove-pet-button-container button,
+  .dark-mode .remove-pet-popup button {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #555555;
+  }
+
+  .dark-mode .pet-tracker .view-pet-button:hover,
+  .dark-mode .treat-log-buttons button:hover:not(:disabled),
+  .dark-mode .remove-pet-button-container button:hover:not(:disabled),
+  .dark-mode .remove-pet-popup button:hover {
+    background-color: #3d3d3d;
+    border-color: #993638;
   }
 
   .pet-modal-content .remove-pet-button {
@@ -882,11 +1008,17 @@
       font-size: 1.25rem;
     }
 
-    .pet-modal-actions {
+    .pet-modal-actions,
+    .treat-log-buttons,
+    .remove-pet-button-container,
+    .remove-pet-button {
       flex-direction: column;
     }
 
-    .pet-modal-actions button {
+    .pet-modal-actions button,
+    .treat-log-buttons button,
+    .remove-pet-button-container button,
+    .remove-pet-button button {
       width: 100%;
     }
   }

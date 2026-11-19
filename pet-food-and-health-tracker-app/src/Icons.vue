@@ -5,7 +5,7 @@
 
   defineProps<{
     darkMode?: boolean
-    icon?: 'theme' |
+    icon?: 'theme' | 'app-icon' |
     'home-page-1' | 'home-page-2' | 'home-page-3' | 'home-page-4' | 'home-page-5' | 'home-page-6' |
     'get-started-1' | 'get-started-2' | 'get-started-3' | 'get-started-4' | 'get-started-5' | 'get-started-6' |
     'pet-food-1' | 'pet-food-2' | 'pet-food-3' | 'pet-food-4' | 'pet-food-5' | 'pet-food-6'|
@@ -17,6 +17,20 @@
 </script>
 
 <template>
+  <!--App icon-->
+  <svg v-if="icon === 'app-icon'" class="app-icon" height="200px" width="200px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-4.8839 -4.8839 58.6068 58.6068" xml:space="preserve" fill="#000000" style="width: 200px; height: 200px; color: rgb(0, 0, 0);">
+  <g id="SVGRepo_bgCarrier" stroke-width="0">
+    <rect x="-4.8839" y="-4.8839" width="58.6068" height="58.6068" rx="29.3034" fill="#ffffff" strokewidth="0"/>
+  </g>
+  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+  <g id="SVGRepo_iconCarrier">
+    <g>
+      <path style="fill:#030104;" d="M39.041,36.843c2.054,3.234,3.022,4.951,3.022,6.742c0,3.537-2.627,5.252-6.166,5.252 c-1.56,0-2.567-0.002-5.112-1.326c0,0-1.649-1.509-5.508-1.354c-3.895-0.154-5.545,1.373-5.545,1.373 c-2.545,1.323-3.516,1.309-5.074,1.309c-3.539,0-6.168-1.713-6.168-5.252c0-1.791,0.971-3.506,3.024-6.742
+      c0,0,3.881-6.445,7.244-9.477c2.43-2.188,5.973-2.18,5.973-2.18h1.093v-0.001c0,0,3.698-0.009,5.976,2.181 C35.059,30.51,39.041,36.844,39.041,36.843z M16.631,20.878c3.7,0,6.699-4.674,6.699-10.439S20.331,0,16.631,0 S9.932,4.674,9.932,10.439S12.931,20.878,16.631,20.878z M10.211,30.988c2.727-1.259,3.349-5.723,1.388-9.971
+      s-5.761-6.672-8.488-5.414s-3.348,5.723-1.388,9.971C3.684,29.822,7.484,32.245,10.211,30.988z M32.206,20.878 c3.7,0,6.7-4.674,6.7-10.439S35.906,0,32.206,0s-6.699,4.674-6.699,10.439C25.507,16.204,28.506,20.878,32.206,20.878z M45.727,15.602c-2.728-1.259-6.527,1.165-8.488,5.414s-1.339,8.713,1.389,9.972c2.728,1.258,6.527-1.166,8.488-5.414 S48.455,16.861,45.727,15.602z"/>
+    </g>
+  </g>
+  </svg>
   <!--Sun icon-->
   <svg v-if="(!icon || icon === 'theme') && !darkMode" class="sun-icon" width="800px" height="800px" viewBox="0 -0.5 78 78" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <g clip-path="url(#clip0)">
