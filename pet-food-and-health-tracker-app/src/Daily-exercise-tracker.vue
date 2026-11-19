@@ -336,8 +336,8 @@
             </div>
           </div>
           <div class="exercise-log-buttons">
-            <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logExercise(selectedPet)">Log exercise for {{ selectedPet.name }}</button>
-            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove exercise</button>
+            <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logExercise(selectedPet)">Log exercise session for {{ selectedPet.name }}</button>
+            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove last exercise session</button>
           </div>
           <div class="reset-exercise-count-button">
             <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset exercise count</button>
@@ -346,7 +346,7 @@
             <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)"> Remove {{ selectedPet.name }}</button>
           </div>
           <div v-if="Object.keys(selectedPet.exerciseBreakdown).length" class="exercise-breakdown">
-            <h4>Today's Exercise Breakdown</h4>
+            <h4>Today's Exercise Sessions</h4>
             <div v-for="(count, label) in selectedPet.exerciseBreakdown" :key="label" class="exercise-breakdown-item">
               <div class="exercise-breakdown-heading">
                 <span>{{ label }}</span>

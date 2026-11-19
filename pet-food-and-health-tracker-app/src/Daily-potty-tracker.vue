@@ -1,14 +1,17 @@
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted } from 'vue'
+  import { ref, onMounted, onUnmounted, nextTick } from 'vue'
   import { getPets, deletePet, type Pet } from './pets'
   import { isDarkMode } from './darkMode'
   import Icons from './Icons.vue'
 
   interface TrackedPet extends Pet {
     pottyBreaks: string[]
+    pottyBreakdown: Record<string, number>
+    pottyHistory: string[]
   }
 
   const trackedPets = ref<TrackedPet[]>([])
+  const selectedPet = ref<TrackedPet | null>(null)
   const showRemovePetPopup = ref(false)
   const petToRemove = ref<TrackedPet | null>(null)
   const todayDate = new Date().toLocaleDateString('en-US')
@@ -36,7 +39,9 @@
 
       return {
         ...pet,
-        pottyBreaks
+        pottyBreaks,
+        pottyBreakdown: JSON.parse(localStorage.getItem(`pottyBreakdown:${pet.id}:${todayDate}`) || '{}'),
+        pottyHistory: JSON.parse(localStorage.getItem(`pottyHistory:${pet.id}:${todayDate}`) || '[]')
       }
     })
     clockInterval = setInterval(() => {
@@ -53,19 +58,36 @@
     return count === 1 ? `1 potty break logged today.` : `${count} potty breaks logged today.`
   }
 
-  const logPottyBreak = (p: TrackedPet) => {
+  const savePottyBreakdown = (p: TrackedPet) => {
+    localStorage.setItem(`pottyBreakdown:${p.id}:${todayDate}`, JSON.stringify(p.pottyBreakdown))
+    localStorage.setItem(`pottyHistory:${p.id}:${todayDate}`, JSON.stringify(p.pottyHistory))
+  }
+
+  const logPottyBreak = async (p: TrackedPet) => {
     const time = new Date().toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit'
     })
     p.pottyBreaks.push(time)
+    p.pottyHistory.push(time)
+    p.pottyBreakdown[time] = (p.pottyBreakdown[time] || 0)
     localStorage.setItem(logKeyFor(p.id), JSON.stringify(p.pottyBreaks))
+    await triggerConfetti()
+    savePottyBreakdown(p)
   }
 
   const removeLog = (p: TrackedPet) => {
     if (p.pottyBreaks.length === 0) return
     p.pottyBreaks.pop()
+    const lastBreak = p.pottyHistory.pop()
+    if (lastBreak && p.pottyBreakdown[lastBreak]) {
+      p.pottyBreakdown[lastBreak] -= 1
+      if(p.pottyBreakdown[lastBreak] === 0) {
+        delete p.pottyBreakdown[lastBreak]
+      }
+    }
     localStorage.setItem(logKeyFor(p.id), JSON.stringify(p.pottyBreaks))
+    savePottyBreakdown(p)
   }
 
   const resetLog = (p: TrackedPet) => {
@@ -85,8 +107,12 @@
 
   const removeFromThisTracker = () => {
     if (!petToRemove.value) return
+    const petId = petToRemove.value.id
     trackedPets.value = trackedPets.value.filter(pet => pet.id !== petToRemove.value!.id)
     cancelRemovePet()
+    if (selectedPet.value?.id === petId) {
+      closePetPopup()
+    }
   }
 
   const removeFromAllTrackers = () => {
@@ -96,6 +122,42 @@
     localStorage.removeItem(logKeyFor(petId))
     trackedPets.value = trackedPets.value.filter(pet => pet.id !== petId)
     cancelRemovePet()
+    if (selectedPet.value?.id === petId) {
+      closePetPopup()
+    }
+  }
+
+  const openPetPopup = (pet: TrackedPet) => {
+    selectedPet.value = pet
+  }
+
+  const closePetPopup = () => {
+    selectedPet.value = null
+  }
+
+  const showConfetti = ref(false)
+  const confettiPieces = ref<ConfettiPiece[]>([])
+
+  interface ConfettiPiece {
+    x: number
+    y: number
+    rotation: number
+    delay: number
+  }
+
+  const triggerConfetti = async () => {
+    confettiPieces.value = Array.from({ length: 24 }, () => ({
+      x: (Math.random() - 0.5) * 500,
+      y: -Math.random() * 300 - 100,
+      rotation: Math.random() * 720 - 360,
+      delay: Math.random() * 0.15,
+    }))
+    showConfetti.value = false
+    await nextTick()
+    showConfetti.value = true
+    setTimeout(() => {
+      showConfetti.value = false
+    }, 1200)
   }
 </script>
 
@@ -192,22 +254,51 @@
           </div>
         </div>
       </div>
-      <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
-        <p>
-          Tracking for <strong>{{ pet.name }}</strong>
-          <span v-if="pet.breed"> ({{ pet.breed }})</span> — {{ todayDate }} — {{ currentTime }}
-        </p>
-        <p>{{ progressOf(pet) }}</p>
-        <button :data-test="`log-${pet.id}`" @click="logPottyBreak(pet)">Log potty break</button>
-        <button :data-test="`remove-log-${pet.id}`" @click="removeLog(pet)">Remove last potty break</button>
-        <div v-if="pet.pottyBreaks.length">
-          <h3>Today's potty breaks</h3>
-          <ul>
-            <li v-for="(time, index) in pet.pottyBreaks" :key="`${time}-${index}`">{{ time }} — Potty break</li>
-          </ul>
+      <div class="pet-list">
+        <div v-for="pet in trackedPets" :key="pet.id" class="pet-tracker">
+          <p><strong>{{ pet.name }}</strong></p>
+          <p v-if="pet.breed">{{ pet.breed }}</p>
+          <p>{{ pet.type }}</p>
+          <button class="view-pet-button" :data-test="`view-${pet.id}`" @click="openPetPopup(pet)">View Tracker</button>
         </div>
-        <button :data-test="`reset-${pet.id}`" @click="resetLog(pet)">Reset {{ pet.name }}'s potty break count</button>
-        <button :data-test="`remove-pet-${pet.id}`" @click="askRemovePet(pet)">Remove {{ pet.name }}</button>
+      </div>
+      <div v-if="selectedPet" class="pet-modal-overlay" @click.self="closePetPopup">
+        <div class="pet-modal-content">
+          <button class="close-modal-button" aria-label="Close pet tracker" @click="closePetPopup">&times;</button>
+          <h3>{{ selectedPet.name }}'s Daily Potty Tracker</h3>
+          <p v-if="selectedPet.breed">{{ selectedPet.breed }}</p>
+          <p>{{ selectedPet.type }}</p>
+          <p>Today's date: {{ todayDate }}</p>
+          <p>{{ progressOf(selectedPet) }}</p>
+          <div class="potty-tracker-progress-container">
+            <progress class="potty-progress-bar" :value="selectedPet.pottyBreaks.length" :aria-label="`${selectedPet.name} daily potty progress`"></progress>
+          </div>
+          <div class="potty-log-buttons">
+            <button :data-test="`log-${selectedPet.id}`" @click="logPottyBreak(selectedPet)">Log potty break for {{ selectedPet.name }}</button>
+            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove last potty break</button>
+          </div>
+          <div class="reset-potty-count-button">
+            <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset potty break count</button>
+          </div>
+          <div class="remove-pet-button-container">
+            <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
+          </div>
+          <div v-if="selectedPet.pottyBreaks.length" class="potty-breakdown">
+            <h4>Today's Potty Breaks</h4>
+            <div v-for="(time, index) in selectedPet.pottyBreaks" :key="`${time}-${index}`">
+              <div class="potty-breakdown-heading">
+                <span>{{ time }} — Potty break</span>
+                <span>{{ selectedPet.pottyBreaks.length }} completed</span>
+              </div>
+              <div class="potty-breakdown-bar">
+                <div class="potty-breakdown-progress" :style="{ width: `${selectedPet.pottyBreaks.length ? ((index + 1) / selectedPet.pottyBreaks.length) * 100 : 0}%` }"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+          <div v-if="showConfetti" class="confetti-container" aria-hidden="true">
+            <span v-for="(piece, index) in confettiPieces" :key="index" class="confetti-piece" :style="{ '--x': `${piece.x}px`, '--y': `${piece.y}px`, '--rotation': `${piece.rotation}deg`, '--delay': `${piece.delay}s` }"></span>
+          </div>
       </div>
     </div>
 
@@ -589,5 +680,498 @@
     font-size: 1.2rem;
     max-width: 600px;
     margin: 0 auto;
+  }
+
+  .pet-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 40px auto;
+  }
+
+  .pet-tracker {
+    box-sizing: border-box;
+    padding: 25px 20px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+  }
+
+  .pet-tracker:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-tracker p {
+    margin: 8px auto;
+    font-size: 1.1rem;
+  }
+
+  .pet-tracker .view-pet-button {
+    padding: 10px 22px;
+    margin-top: 15px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+  }
+
+  .pet-tracker .view-pet-button:hover {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .pet-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 35px 30px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+    animation: pet-modal-appear 0.25s ease-out;
+  }
+
+  .pet-modal-content h3 {
+    margin: 10px 25px 20px;
+    font-size: 1.5rem;
+  }
+
+  .pet-modal-content p {
+    margin: 12px auto;
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+
+  .pet-modal-content .close-modal-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    padding: 4px 10px;
+    margin: 0;
+    background: transparent;
+    color: inherit;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.8rem;
+    cursor: pointer;
+  }
+
+  .pet-modal-content .close-modal-button:hover {
+    color: #993638;
+  }
+
+  .potty-log-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .potty-log-buttons button,
+  .reset-potty-count-button button,
+  .remove-pet-button-container button {
+    padding: 10px 18px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+  }
+
+  .potty-log-buttons button:hover:not(:disabled),
+  .reset-potty-count-button button:hover:not(:disabled),
+  .remove-pet-button-container button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .potty-log-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .reset-potty-count-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .remove-pet-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .remove-pet-button-container .remove-pet-button {
+    border-color: #993638;
+    color: #993638;
+  }
+
+  .potty-type-buttons button.selected {
+    animation: medicine-type-selected 0.25s ease forwards;
+  }
+
+  .pet-modal-content .potty-log-buttons button,
+  .pet-modal-content .reset-potty-count-button button,
+  .pet-modal-content .remove-pet-button-container button {
+    padding: 10px 18px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+  }
+
+  .pet-modal-content .potty-log-buttons button:hover:not(:disabled),
+  .pet-modal-content .reset-potty-count-button button:hover:not(:disabled),
+  .pet-modal-content .remove-pet-button-container button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #993638;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .pet-modal-content .potty-log-buttons button:disabled,
+  .pet-modal-content .reset-potty-count-button button:disabled,
+  .pet-modal-content .remove-pet-button-container button:hover:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pet-modal-content .remove-pet-button {
+    border-color: #993638;
+    color: #993638;
+  }
+
+  .remove-pet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .remove-pet-popup {
+    width: 100%;
+    max-width: 450px;
+    padding: 30px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+    animation: pet-modal-appear 0.25s ease-out;
+  }
+
+  .remove-pet-popup p {
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .remove-pet-popup button {
+    padding: 10px 16px;
+    margin: 6px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .remove-pet-popup button:hover {
+    border-color: #993638;
+  }
+
+  .dark-mode .pet-tracker,
+  .dark-mode .pet-modal-content,
+  .dark-mode .remove-pet-popup {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #4a4a4a;
+  }
+
+  .dark-mode .pet-tracker .view-pet-button,
+  .dark-mode .potty-log-buttons button,
+  .dark-mode .reset-potty-count-button button,
+  .dark-mode .remove-pet-button-container button,
+  .dark-mode .remove-pet-popup button {
+    background-color: #333333;
+    color: #f2f2f2;
+    border-color: #555555;
+  }
+
+  .dark-mode .pet-tracker .view-pet-button:hover,
+  .dark-mode .potty-log-buttons button:hover:not(:disabled),
+  .dark-mode .reset-potty-count-button button:hover:not(:disabled),
+  .dark-mode .remove-pet-button-container button:hover:not(:disabled),
+  .dark-mode .remove-pet-popup button:hover {
+    background-color: #3d3d3d;
+    border-color: #993638;
+  }
+
+  .dark-mode .pet-modal-content .remove-pet-button {
+    color: #ff9999;
+    border-color: #993638;
+  }
+
+  @keyframes pet-modal-appear {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .pet-list {
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .pet-modal-content {
+      padding: 30px 18px;
+    }
+
+    .pet-modal-content h3 {
+      font-size: 1.25rem;
+    }
+
+    .potty-log-buttons,
+    .reset-potty-count-button,
+    .remove-pet-button {
+      flex-direction: column;
+    }
+
+    .potty-log-buttons button,
+    .reset-potty-count-button button,
+    .remove-pet-button button {
+      width: 100%;
+    }
+  }
+
+  .pet-tracker button:focus-visible,
+  .pet-modal-content button:focus-visible,
+  .remove-pet-popup button:focus-visible {
+    outline: 3px solid rgba(153, 54, 56, 0.4);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pet-tracker,
+    .pet-tracker button,
+    .pet-modal-content,
+    .pet-modal-content button,
+    .remove-pet-popup {
+      animation: none;
+      transition: none;
+    }
+  }
+
+  .potty-breakdown {
+    width: 100%;
+    max-width: 450px;
+    margin: 1.5rem auto;
+    padding: 18px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background-color: #f0f4ed;
+    border: 1px solid #d5e1d2;
+    text-align: left;
+  }
+
+  .potty-breakdown h4 {
+    margin: 0 0 1.25rem;
+    text-align: center;
+    font-size: 1.15rem;
+  }
+
+  .potty-breakdown-item {
+    margin-bottom: 1rem;
+  }
+
+  .potty-breakdown-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 7px;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .potty-breakdown-bar {
+    width: 100%;
+    height: 9px;
+    overflow: hidden;
+    border-radius: 10px;
+    background-color: #dce5d9;
+  }
+
+  .potty-breakdown-progress {
+    height: 100%;
+    border-radius: 10px;
+    background-color: #529568;
+    transition: width 0.3s ease;
+  }
+
+  .daily-potty-tracker.dark-mode .potty-breakdown {
+    background-color: #293a30;
+    border-color: #465d4b;
+  }
+
+  .daily-potty-tracker.dark-mode .potty-breakdown-bar {
+    background-color: #435448;
+  }
+
+  .daily-potty-tracker.dark-mode .potty-breakdown-progress {
+    background-color: #77b783;
+  }
+
+  .potty-progress-bar {
+    width: 100%;
+    max-width: 450px;
+    height: 10px;
+    margin: 1.25rem auto;
+    display: block;
+    overflow: hidden;
+    border-radius: 10px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #dce5d9;
+  }
+
+  .potty-progress-bar::-webkit-progress-bar {
+    background-color: #dce5d9;
+    border-radius: 10px;
+  }
+
+  .potty-progress-bar::-webkit-progress-value {
+    background-color: #529568;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .potty-progress-bar::-moz-progress-bar {
+    background-color: #529568;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .daily-potty-tracker.dark-mode .potty-progress-bar {
+    background-color: #435448;
+  }
+
+  .daily-potty-tracker.dark-mode .potty-progress-bar::-webkit-progress-bar {
+    background-color: #435448;
+  }
+
+  .daily-potty-tracker.dark-mode .potty-progress-bar::-webkit-progress-value {
+    background-color: #77b783;
+  }
+
+  .daily-potty-tracker.dark-mode .potty-progress-bar::-moz-progress-bar {
+    background-color: #77b783;
+  }
+
+  .confetti-container {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    background-color: #529568;
+    opacity: 0;
+    animation: confetti-blast 1.1s ease-out forwards;
+    animation-delay: var(--delay);
+  }
+
+  .confetti-piece:nth-child(3n) {
+    background-color: #f2c94c;
+  }
+
+  .confetti-piece:nth-child(3n + 1) {
+    background-color: #993638;
+  }
+
+  .confetti-piece:nth-child(3n + 2) {
+    background-color: #77b783;
+  }
+
+  @keyframes confetti-blast {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0) rotate(0deg);
+    }
+
+    70% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(var(--x), var(--y)) rotate(var(--rotation));
+    }
   }
 </style>

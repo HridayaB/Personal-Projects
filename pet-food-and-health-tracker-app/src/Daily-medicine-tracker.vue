@@ -272,7 +272,7 @@
             </div>
             <div class="medicine-log-buttons">
             <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logMedicine(selectedPet)">Log medicine for {{ selectedPet.name }}</button>
-            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove medicine dose</button>
+            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove last medicine dose</button>
           </div>
           <div class="reset-medicine-count-button">
             <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset medicine count</button>
@@ -281,11 +281,11 @@
             <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
           </div>
             <div v-if="Object.keys(selectedPet.medicineBreakdown).length" class="medicine-breakdown">
-              <h4>Today's Medicine Breakdown</h4>
+              <h4>Today's Medicine Doses</h4>
               <div v-for="(count, label) in selectedPet.medicineBreakdown" :key="label" class="medicine-breakdown-item">
                 <div class="medicine-breakdown-heading">
                   <span>{{ label }}</span>
-                  <span>{{ count }} completed</span>
+                   <span>{{ count }} completed</span>
                 </div>
                 <div class="medicine-breakdown-bar">
                   <div class="medicine-breakdown-progress" :style="{width: `${selectedPet.medicineCount ? (count / selectedPet.medicineCount) * 100 : 0}%`}"></div>
@@ -699,10 +699,7 @@
     border: 1px solid #d1d1d1;
     border-radius: 14px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease,
-      background-color 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
   }
 
   .pet-tracker:hover {
@@ -726,11 +723,7 @@
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition:
-      transform 0.2s ease,
-      background-color 0.3s ease,
-      border-color 0.3s ease,
-      box-shadow 0.2s ease;
+    transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
   }
 
   .pet-tracker .view-pet-button:hover {

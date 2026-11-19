@@ -229,7 +229,7 @@
           </div>
           <div class="pet-modal-actions">
             <button :disabled="remainingOf(selectedPet) === 0" :data-test="`log-${selectedPet.id}`" @click="logFeeding(selectedPet)">Log feeding for {{ selectedPet.name }}</button>
-            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove feeding log</button>
+            <button :data-test="`remove-log-${selectedPet.id}`" @click="removeLog(selectedPet)">Remove last feeding session</button>
             <button :data-test="`reset-${selectedPet.id}`" @click="resetLog(selectedPet)">Reset feed count</button>
             <button class="remove-pet-button" :data-test="`remove-pet-${selectedPet.id}`" @click="askRemovePet(selectedPet)">Remove {{ selectedPet.name }}</button>
           </div>
