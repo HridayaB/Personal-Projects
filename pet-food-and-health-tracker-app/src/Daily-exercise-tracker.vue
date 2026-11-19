@@ -131,6 +131,7 @@
   const closePetPopup = () => {
     selectedPet.value = null
   }
+
   const timerSeconds = ref<Record<string, number>>({})
   const timerMinutes = ref<Record<string, number>>({})
   const timerRunning = ref<Record<string, boolean>>({})
